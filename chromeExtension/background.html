@@ -1,0 +1,32 @@
+<html>
+    <script src="jquery-1.6.1.min.js">
+    </script>
+
+    <object id="plugin0" type="application/x-gmailgpg"></object><br />
+    <script>
+        function plugin0()
+        {
+            return document.getElementById('plugin0');
+        }
+        chrome.extension.onRequest.addListener(
+        function(request, sender, sendResponse) {
+            var gpgPath = localStorage['gpgPath'];
+            var tempPath = localStorage['tempPath'];
+            if(!gpgPath){
+                gpgPath = '/opt/local/bin/'; 
+            };
+            if(!tempPath){
+                tempPath = '/tmp/'; 
+            };
+            plugin0().appPath = gpgPath;
+            plugin0().tempPath = tempPath;
+            if (request.messageType == 'encrypt'){
+                var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
+                console.log(mailList,request.encrypt.message);
+                sendResponse({message: plugin0().encrypt(mailList,request.encrypt.message),domid:request.encrypt.domel});
+            }else if(request.messageType == 'decrypt'){
+                sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
+            }
+        });
+    </script>
+</html>

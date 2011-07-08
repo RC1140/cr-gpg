@@ -1,0 +1,27 @@
+{
+  "name": "Thinking Privacy",
+  "version": "0.5",
+  "permissions": [
+    "tabs", "http://*/*", "https://*/*"
+  ],
+  "browser_action": {
+      "default_title": "The gmail gpg encryption plugin",
+      "default_icon": "icon.png",
+      "popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "plugins": [
+     { "path": "gmailGPG.plugin","public": true}
+  ],
+  "content_scripts": [
+      { "matches": ["http://*/*", "https://*/*"], 
+        "css": ["jquery-ui-1.8.11.thinkst.css"],
+        "js": ["jquery-1.6.1.min.js","jquery-ui-1.8.13.custom.js","content_script.js"], 
+        "all_frames": true 
+        }
+  ],
+  "permissions": [
+      "tabs", "http://*/*", "https://*/*", "contextMenus"
+    ],
+    "background_page":"background.html"
+}

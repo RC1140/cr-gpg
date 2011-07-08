@@ -1,0 +1,50 @@
+<html>
+    <head><title>GPG Options</title></head>
+<script type="text/javascript">
+
+        // Saves options to localStorage.
+    function save_options() {
+        var gpgPath = document.getElementById("gpgPath");
+        if(!(/\/$/.test(gpgPath.value.toString()))){
+                //!(/\\$/.test(gpgPath.value.toString()))
+                alert('Please ensure that your gpg path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
+                return;
+        }
+        localStorage["gpgPath"] = gpgPath.value;
+
+        var tempPath = document.getElementById("tempPath");
+        if(!(/\/$/.test(tempPath.value.toString()))){
+                alert('Please ensure that your temp path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
+                return;
+        }
+        localStorage["tempPath"] = tempPath.value;
+        alert('options saved');
+     }
+
+// Restores select box state to saved value from localStorage.
+function restore_options() {
+    var gpgPath = document.getElementById("gpgPath");
+    if(localStorage["gpgPath"]){
+        gpgPath.value = localStorage["gpgPath"]; 
+    };
+
+    var tempPath = document.getElementById("tempPath");
+    if(localStorage["tempPath"]){
+        tempPath.value = localStorage["tempPath"]; 
+    };
+
+}
+</script>
+
+<body onload="restore_options()">
+    <table>
+        <tr>
+            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input></td>
+        </tr>
+        <tr>
+            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input></td>
+        </tr>
+    </table>
+    <button onclick="save_options()">Save</button>
+</body>
+                                                                                </html>
