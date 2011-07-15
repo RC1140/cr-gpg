@@ -10,8 +10,43 @@
         $('a.encrypt').click(function(){
             chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':$('#ecmessage').val(),'maillist':$('#recipients').val().split(','),'domel':$(this).attr('id')}}, function(response) {
                 var returnMessage = response.message;
-                $('#ecmessage').text(returnMessage);   
+                if(returnMessage.length == 1){
+                    $('#ecmessage').val('Invalid Recipients or no public key found for recipients');   
+                }else{
+                    $('#ecmessage').text(returnMessage);   
+                }
             });
+        });
+
+        $('div.verify').click(function(){
+            $(this).html('');
+        });
+        $('a.sign').click(function(){
+            var gpgPath = localStorage['gpgPath'];
+            var tempPath = localStorage['tempPath'];
+            if(!gpgPath){
+                gpgPath = '/opt/local/bin/'; 
+            };
+            if(!tempPath){
+                tempPath = '/tmp/'; 
+            }
+            plugin0().appPath = gpgPath;
+            plugin0().tempPath = tempPath;
+            $('#sigmessage').text(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
+        });
+
+        $('a.verify').click(function(){
+            var gpgPath = localStorage['gpgPath'];
+            var tempPath = localStorage['tempPath'];
+            if(!gpgPath){
+                gpgPath = '/opt/local/bin/'; 
+            };
+            if(!tempPath){
+                tempPath = '/tmp/'; 
+            }
+            plugin0().appPath = gpgPath;
+            plugin0().tempPath = tempPath;
+            $('div.verify').text(plugin0().verifyMessage($('#sigmessage').val()) + '. Click to Clear this Message');   
         });
 
         $('a.import').click(function(){
@@ -25,7 +60,7 @@
             }
             plugin0().appPath = gpgPath;
             plugin0().tempPath = tempPath;
-            $('textarea').text(plugin0().importKey($('textarea.message').val()));   
+            $('textarea.message').text(plugin0().importKey($('textarea.message').val()));   
         });
         $('textarea').click(function(){
             if($(this).text() == 'Enter text here'){
@@ -48,6 +83,7 @@
         <ul>
             <li><a href="#tabs-1">Import Key</a></li>
             <li><a href="#tabs-2">Encrypt Text</a></li>
+            <li><a href="#tabs-3">Sign Message</a></li>
         </ul>
         <div id="tabs-1">
             <h3>If you need to import a users key , please paste the ascii armor formatted key below</h3>
@@ -71,6 +107,21 @@
                 </form>
             </div>
 
+        </div>
+        <div id="tabs-3">
+            <h3>Sign Message</h3>
+            <div width="280px" height="200px">
+                <form>
+                    Password : 
+                    <input id="sigPass" width="100%" type="password"/><br/>
+
+                    Message : 
+                    <textarea id="sigmessage" rows="10" cols="75">Enter text here</textarea>
+                    <div class="verify" style="background-color:#888888;"></div>
+                    <a class="sign" id="2003"  href="#">Sign Message</a> 
+                    <a class="verify" id="2003"  href="#">Verify Message</a> 
+                </form>
+            </div>
         </div>
     </div>
 </div>

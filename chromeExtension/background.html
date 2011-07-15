@@ -22,7 +22,7 @@
             plugin0().tempPath = tempPath;
             if (request.messageType == 'encrypt'){
                 var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
-                console.log(mailList,request.encrypt.message);
+                //console.log(mailList,request.encrypt.message);
                 sendResponse({message: plugin0().encrypt(mailList,request.encrypt.message),domid:request.encrypt.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});

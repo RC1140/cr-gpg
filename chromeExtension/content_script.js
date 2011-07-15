@@ -8,14 +8,20 @@ $(document).ready(function(){
                 buttons: [{
                     text: "Ok",
                     click: function () {
-                        var messageElement = $('#'+$(this).attr('decID')).parent().parent().parent().parent().parent().parent().parent().prev().prev().prev();
+                        //var messageElement = $('#'+$(this).attr('decID')).parent().parent().parent().parent().parent().parent().parent().prev().prev().prev().prev().prev();
+                        var messageElement = $('#'+$(this).attr('decID')).closest('.gs').find('.ii.gt');
                         var emailMessage = messageElement.text(); 
                         var pp = $('input[type="password"]',this).val();
                         chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':pp,'message':emailMessage,'domel':$(this).attr('decID')}}, function(response) {
                             if(response.message.indexOf('decryption failed') == -1){
                                 if(response.message.indexOf('no valid OpenPGP data found') == -1){
-                                    var messageElement = $('#'+response.domid.toString()).parent().parent().parent().parent().parent().parent().parent().prev().prev().prev();
-                                    $($(messageElement).children()[0]).html(response.message); 
+                                    var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
+                                    var tempMessage = response.message.replace(/\n/g, '<br>');
+                                    if($.trim(response.message).length == 0){
+                                        alert('Invalid Passphrase'); 
+                                    }else{
+                                        $($(messageElement).children()[0]).html(tempMessage); 
+                                    }
                                     jQuery.dLoader.dialog("close");
                                 }else{
                                     alert(response.message); 
@@ -56,12 +62,16 @@ $(document).ready(function(){
                     };
                     chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(this).attr('id'),'maillist':emailList}}, function(response) {
                         var returnMessage = response.message;
-                        var messageElement = $('#'+response.domid.toString()).parent().parent().parent().parent().parent().next();
-                        if(returnMessage.indexOf('gpg:') != -1){
-                                alert(returnMessage); 
-                                return;
-                        };
-                        $('.Ak',messageElement).val(returnMessage);
+                        if(returnMessage.length > 1){
+                            var messageElement = $('#'+response.domid.toString()).parent().parent().parent().parent().parent().next();
+                            if(returnMessage.indexOf('gpg:') != -1){
+                                    alert(returnMessage); 
+                                    return;
+                            };
+                            $('.Ak',messageElement).val(returnMessage);
+                        }else{
+                            alert('No public keys found for recipients');
+                        }
                     });
         });
         //Setup monitors for the new mail section
