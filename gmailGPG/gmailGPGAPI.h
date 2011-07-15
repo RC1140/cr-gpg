@@ -27,17 +27,17 @@ public:
     std::string get_tempPath();
     void set_tempPath(const std::string& val);
 
-    
-    // Read-only property ${PROPERTY.ident}
     std::string get_version();
 
-    std::string readAndRemoveErrorFile();
-    FB::variant encryptMessage(const FB::variant& recipients,const FB::variant& msg);
-    FB::variant decryptMessage(const FB::variant& password,const FB::variant& msg);
-    FB::variant importKey(const FB::variant& pubKey);
+    std::string readAndRemoveErrorFile(std::string);
+    FB::variant encryptMessage(const FB::variant&,const FB::variant&);
+    FB::variant decryptMessage(const FB::variant&,const FB::variant&);
+    FB::variant importKey(const FB::variant&);
     FB::variant listKeys();
-     
-    // Event helpers
+    FB::variant listPrivateKeys();
+    FB::variant clearSignMessage(const FB::variant&,const FB::variant&);
+    FB::variant verifyMessage(const FB::variant&);
+    
     FB_JSAPI_EVENT(fired, 3, (const FB::variant&, bool, int));
     FB_JSAPI_EVENT(echo, 2, (const FB::variant&, const int));
     FB_JSAPI_EVENT(notify, 0, ());
