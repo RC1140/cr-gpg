@@ -3,7 +3,7 @@ and a basic setup.
 
 ## Folders : 
 
-thinkingPrivacy : This is the chrome extension , you need to pack
+chromeExtension : This is the chrome extension , you need to pack
 it wil chrome to distribute it or you can load it as is.
 
 gmailGPG : This is the gpg plugin and is what interacts with the
