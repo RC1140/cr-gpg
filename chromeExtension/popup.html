@@ -1,128 +1,70 @@
 <script src="jquery-1.6.1.min.js"></script>
 <script src="jquery-ui-1.8.13.custom.js"></script>
 <link rel=StyleSheet href="jquery-ui-1.8.11.thinkst.css" type="text/css">
-<script>
-    $(document).ready(function(){
-        function plugin0()
-        {
-            return document.getElementById('plugin0');
-        }
-        $('a.encrypt').click(function(){
-            chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':$('#ecmessage').val(),'maillist':$('#recipients').val().split(','),'domel':$(this).attr('id')}}, function(response) {
-                var returnMessage = response.message;
-                if(returnMessage.length == 1){
-                    $('#ecmessage').val('Invalid Recipients or no public key found for recipients');   
-                }else{
-                    $('#ecmessage').text(returnMessage);   
-                }
-            });
-        });
+<style type="text/css">
+    body {min-width:700;min-height:300;}
+</style>
+<script src="popup.js"></script>
+<html>
+    <body>
+        <div class="interface">
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tabs-1">Import Key</a></li>
+                    <li><a href="#tabs-2">Encrypt Text</a></li>
+                    <li><a href="#tabs-3">Sign Message</a></li>
+                    <li><a href="#tabs-4">About</a></li>
+                </ul>
+                <div id="tabs-1">
+                    <h3>If you need to import a users key , please paste the ascii armor formatted key below</h3>
+                    <div width="280px" height="200px">
+                        <form>
+                            Key : 
+                            <textarea class="message" rows="10" cols="75">Please Paste your key here</textarea>
+                            <a class="import" href="#">Import Key</a> 
+                        </form>
+                    </div>
+                </div>
+                <div id="tabs-2">
+                    <h3>Encrypt Text</h3>
+                    <div width="280px" height="200px">
+                        <form>
+                            Recipients (comma seperated) : 
+                            <input id="recipients" width="100%"/><br/>
+                            Message : 
+                            <textarea id="ecmessage" rows="10" cols="75">Enter text here</textarea>
+                            <a class="encrypt" id="2002"  href="#">Encrypt Text</a> 
+                        </form>
+                    </div>
 
-        $('div.verify').click(function(){
-            $(this).html('');
-        });
-        $('a.sign').click(function(){
-            var gpgPath = localStorage['gpgPath'];
-            var tempPath = localStorage['tempPath'];
-            if(!gpgPath){
-                gpgPath = '/opt/local/bin/'; 
-            };
-            if(!tempPath){
-                tempPath = '/tmp/'; 
-            }
-            plugin0().appPath = gpgPath;
-            plugin0().tempPath = tempPath;
-            $('#sigmessage').text(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
-        });
+                </div>
+                <div id="tabs-3">
+                    <h3>Sign Message</h3>
+                    <div width="280px" height="200px">
+                        <form>
+                            Password : 
+                            <input id="sigPass" width="100%" type="password"/><br/>
 
-        $('a.verify').click(function(){
-            var gpgPath = localStorage['gpgPath'];
-            var tempPath = localStorage['tempPath'];
-            if(!gpgPath){
-                gpgPath = '/opt/local/bin/'; 
-            };
-            if(!tempPath){
-                tempPath = '/tmp/'; 
-            }
-            plugin0().appPath = gpgPath;
-            plugin0().tempPath = tempPath;
-            $('div.verify').text(plugin0().verifyMessage($('#sigmessage').val()) + '. Click to Clear this Message');   
-        });
+                            Message : 
+                            <textarea id="sigmessage" rows="10" cols="75">Enter text here</textarea>
+                            <div class="verify" style="background-color:#888888;"></div>
+                            <a class="sign" id="2003"  href="#">Sign Message</a> 
+                            <a class="verify" id="2003"  href="#">Verify Message</a> 
+                        </form>
+                    </div>
+                </div>
+                <div id="tabs-4">
+                    <h3>About</h3>
+                    <div>
+                        Version : 0.6.1
+                        <h2>Beta</h2>
+                        <p> This plugin is still in its alpha phase.<br/> 
+                        Please report any issues or features you require to jameel@thinkst.com<br/> 
+                    </div>
+                </div>
 
-        $('a.import').click(function(){
-            var gpgPath = localStorage['gpgPath'];
-            var tempPath = localStorage['tempPath'];
-            if(!gpgPath){
-                gpgPath = '/opt/local/bin/'; 
-            };
-            if(!tempPath){
-                tempPath = '/tmp/'; 
-            }
-            plugin0().appPath = gpgPath;
-            plugin0().tempPath = tempPath;
-            $('textarea.message').text(plugin0().importKey($('textarea.message').val()));   
-        });
-        $('textarea').click(function(){
-            if($(this).text() == 'Enter text here'){
-                $(this).text(''); 
-                return;
-            };
-            if($(this).text() == 'Please Paste your key here'){
-                $(this).text(''); 
-                return;
-            };
-
-        });
-        $(function() {
-            $( "#tabs" ).tabs();
-        });
-    });
-</script>
-<div class="interface">
-    <div id="tabs">
-        <ul>
-            <li><a href="#tabs-1">Import Key</a></li>
-            <li><a href="#tabs-2">Encrypt Text</a></li>
-            <li><a href="#tabs-3">Sign Message</a></li>
-        </ul>
-        <div id="tabs-1">
-            <h3>If you need to import a users key , please paste the ascii armor formatted key below</h3>
-            <div width="280px" height="200px">
-                <form>
-                    Key : 
-                    <textarea class="message" rows="10" cols="75">Please Paste your key here</textarea>
-                    <a class="import" href="#">Import Key</a> 
-                </form>
             </div>
         </div>
-        <div id="tabs-2">
-            <h3>Encrypt Text</h3>
-            <div width="280px" height="200px">
-                <form>
-                    Recipients (comma seperated) : 
-                    <input id="recipients" width="100%"/><br/>
-                    Message : 
-                    <textarea id="ecmessage" rows="10" cols="75">Enter text here</textarea>
-                    <a class="encrypt" id="2002"  href="#">Encrypt Text</a> 
-                </form>
-            </div>
-
-        </div>
-        <div id="tabs-3">
-            <h3>Sign Message</h3>
-            <div width="280px" height="200px">
-                <form>
-                    Password : 
-                    <input id="sigPass" width="100%" type="password"/><br/>
-
-                    Message : 
-                    <textarea id="sigmessage" rows="10" cols="75">Enter text here</textarea>
-                    <div class="verify" style="background-color:#888888;"></div>
-                    <a class="sign" id="2003"  href="#">Sign Message</a> 
-                    <a class="verify" id="2003"  href="#">Verify Message</a> 
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<object height="1px" id="plugin0" type="application/x-gmailgpg"></object><br />
+        <object height="1px" id="plugin0" type="application/x-gmailgpg"></object><br />
+    </body>
+</html>

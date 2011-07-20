@@ -1,4 +1,5 @@
 $(document).ready(function(){
+        chrome.extension.sendRequest({'messageType':'checkOptions'});
         //Listen for decrypt click
         $('[customFunction="decrypt"]').live('click',function(){
             event.preventDefault();
@@ -74,8 +75,9 @@ $(document).ready(function(){
                         }
                     });
         });
-        //Setup monitors for the new mail section
-        $('.nH').live('mouseover',function(){  // Hook over the total list of messages
+        
+        //Setup monitors for the compose mail section
+        $('.nH').live('mouseover',function(){  
                 $('.es.el',this).each(function(index){
                     if($(this).parent().prev().length == 0){
                         if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 3){

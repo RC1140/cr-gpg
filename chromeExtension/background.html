@@ -22,11 +22,42 @@
             plugin0().tempPath = tempPath;
             if (request.messageType == 'encrypt'){
                 var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
-                //console.log(mailList,request.encrypt.message);
                 sendResponse({message: plugin0().encrypt(mailList,request.encrypt.message),domid:request.encrypt.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
+            }else if(request.messageType == 'optionLoad'){
+              chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')});
+              sendResponse('options opened');
+            }else if(request.messageType == 'checkOptions'){
+                var gpgPath = localStorage['gpgPath'];
+                var tempPath = localStorage['tempPath'];
+                var gpgSet = false;
+                var tempSet = false;
+                if(gpgPath){
+                    gpgSet = true;
+                }
+                if(tempPath){
+                    tempSet = true;
+                }
+                if(!gpgSet || !tempSet){
+                    chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')},function(tab){
+                        chrome.extension.sendRequest({'messageType':'alertUser','gpg':gpgSet,'temp':tempSet});
+                    });
+                };
+
+            }else if(request.messageType == 'testSettings'){
+                var gpgPath = localStorage['gpgPath'];
+                var tempPath = localStorage['tempPath'];
+                plugin0().appPath = gpgPath;
+                plugin0().tempPath = tempPath;
+                var returnMessage = plugin0().testOptions();
+                if(returnMessage.indexOf('http://gnu.org/licenses/gpl.html') != -1){
+                     sendResponse('ok');
+                }else{
+                     sendResponse('failed');
+                }
             }
+//
         });
     </script>
 </html>

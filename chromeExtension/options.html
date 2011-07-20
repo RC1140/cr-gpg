@@ -1,24 +1,48 @@
 <html>
-    <head><title>GPG Options</title></head>
+    <head><title>GPG Options</title>
+    <script>
+        chrome.extension.onRequest.addListener(
+        function(request, sender, sendResponse) {
+            if(request.messageType == 'alertUser'){
+                var userAlerted = false;
+                if(!request.gpg){
+                    alert('No gpg path has been set , please update via the options page for the cr-gpg'); 
+                    userAlerted = true;
+                }
+                if(!request.temp && !userAlerted){
+                    alert('No temp path has been set , please update via the options page for the cr-gpg'); 
+                }
+            }
+        });
+    </script>
+
+    </head>
 <script type="text/javascript">
 
         // Saves options to localStorage.
     function save_options() {
         var gpgPath = document.getElementById("gpgPath");
-        if(!(/\/$/.test(gpgPath.value.toString()))){
+        //if(!(/\/$/.test(gpgPath.value.toString()))){
                 //!(/\\$/.test(gpgPath.value.toString()))
-                alert('Please ensure that your gpg path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
-                return;
-        }
+         //       alert('Please ensure that your gpg path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
+          //      return;
+        //}
         localStorage["gpgPath"] = gpgPath.value;
 
         var tempPath = document.getElementById("tempPath");
-        if(!(/\/$/.test(tempPath.value.toString()))){
-                alert('Please ensure that your temp path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
-                return;
-        }
+        //if(!(/\/$/.test(tempPath.value.toString()))){
+         //       alert('Please ensure that your temp path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
+          //      return;
+        //}
         localStorage["tempPath"] = tempPath.value;
-        alert('options saved');
+        chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
+                console.log(response);
+                if(response == 'failed'){
+                    alert('options saved but parameters provided are invalid');
+                }else{
+                    alert('options saved');
+                }
+        });
      }
 
 // Restores select box state to saved value from localStorage.
@@ -34,15 +58,27 @@ function restore_options() {
     };
 
 }
+function restore_gpg_default() {
+    var gpgPath = document.getElementById("gpgPath");
+    gpgPath.value = '/opt/local/bin/'; 
+}
+function restore_temp_default() {
+    var tempPath = document.getElementById("tempPath");
+    tempPath.value = '/tmp/'; 
+}
 </script>
 
 <body onload="restore_options()">
     <table>
         <tr>
-            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input></td>
+            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input>
+                <a onclick="restore_gpg_default()" href="#">Use Default</a>
+            </td>
         </tr>
         <tr>
-            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input></td>
+            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
+                <a onclick="restore_temp_default()" href="#">Use Default</a>
+            </td>
         </tr>
     </table>
     <button onclick="save_options()">Save</button>
