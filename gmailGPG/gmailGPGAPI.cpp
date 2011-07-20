@@ -7,7 +7,7 @@
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <sys/types.h>
-#include <unistd.h> 
+//#include <unistd.h> 
 #include <iostream> 
 #include <fstream>
 #include <string> 
@@ -36,8 +36,12 @@ gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr& ho
     registerMethod("clearSignMessage",     make_method(this, &gmailGPGAPI::clearSignMessage));
     registerMethod("verifyMessage",     make_method(this, &gmailGPGAPI::verifyMessage));
 
+    registerMethod("testOptions",     make_method(this, &gmailGPGAPI::testOptions));
+
     // Read-only property
-    registerProperty("version", make_property(this, &gmailGPGAPI::get_version));
+    registerProperty("version",
+                     make_property(this,
+                        &gmailGPGAPI::get_version));
     registerProperty("appPath" ,make_property(this,&gmailGPGAPI::get_appPath,&gmailGPGAPI::set_appPath));    
     registerProperty("tempPath",make_property(this,&gmailGPGAPI::get_tempPath,&gmailGPGAPI::set_tempPath));
     
@@ -100,7 +104,7 @@ void gmailGPGAPI::set_appPath(const std::string& val)
 
 std::string gmailGPGAPI::get_version()
 {
-    return "0.6.0";
+    return "0.6.1";
 }
 
 void gmailGPGAPI::testEvent(const FB::variant& var)
@@ -115,7 +119,9 @@ string exec(string cmd) {
     else{ 
         return ("");
     }
+
     system (cmd.c_str());
+
     return "";
 }
 
@@ -328,7 +334,7 @@ FB::variant gmailGPGAPI::listKeys()
 {
     string errorFileLocation = m_tempPath +"errorMessage.txt";
     string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath +" gpg ";
+    string gpgFileLocation = m_appPath +"gpg ";
     
     string cmd = gpgFileLocation.append(" -k");
     cmd.append(" 1>");
@@ -351,7 +357,7 @@ FB::variant gmailGPGAPI::listPrivateKeys()
 {
     string errorFileLocation = m_tempPath +"errorMessage.txt";
     string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath +" gpg ";
+    string gpgFileLocation = m_appPath +"gpg ";
     
     string cmd = gpgFileLocation.append(" --list-secret-keys");
     cmd.append(" 1>");
@@ -361,11 +367,35 @@ FB::variant gmailGPGAPI::listPrivateKeys()
 
     exec(cmd);
     string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("errorMessage.txt");
+    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
 
     if(!errorMessage.empty())
     {
         return errorMessage;
     }
     return returnData;
+}
+
+FB::variant gmailGPGAPI::testOptions()
+{
+    string errorFileLocation = m_tempPath +"errorMessage.txt";
+    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
+    string gpgFileLocation = m_appPath +"gpg ";
+    
+    string cmd = gpgFileLocation.append(" --version");
+    cmd.append(" 1>");
+    cmd.append(tempFileLocation);
+    cmd.append(" 2>");
+    cmd.append(errorFileLocation);
+
+    exec(cmd);
+    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
+    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
+
+    if(!errorMessage.empty() && returnData.empty())
+    {
+        return errorMessage;
+    }
+    return returnData;
+
 }

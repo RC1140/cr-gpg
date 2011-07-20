@@ -30,13 +30,15 @@ public:
     std::string get_version();
 
     std::string readAndRemoveErrorFile(std::string);
-    FB::variant encryptMessage(const FB::variant&,const FB::variant&);
-    FB::variant decryptMessage(const FB::variant&,const FB::variant&);
-    FB::variant importKey(const FB::variant&);
+    std::string readFileClean(std::string fileName);
+    FB::variant encryptMessage(const FB::variant& recipients,const FB::variant& msg);
+    FB::variant decryptMessage(const FB::variant& password,const FB::variant& msg);
+    FB::variant importKey(const FB::variant& pubKey);
     FB::variant listKeys();
     FB::variant listPrivateKeys();
-    FB::variant clearSignMessage(const FB::variant&,const FB::variant&);
-    FB::variant verifyMessage(const FB::variant&);
+    FB::variant clearSignMessage(const FB::variant& message,const FB::variant& password);
+    FB::variant verifyMessage(const FB::variant& message);
+    FB::variant testOptions();
     
     FB_JSAPI_EVENT(fired, 3, (const FB::variant&, bool, int));
     FB_JSAPI_EVENT(echo, 2, (const FB::variant&, const int));
