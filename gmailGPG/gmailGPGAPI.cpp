@@ -344,7 +344,7 @@ FB::variant gmailGPGAPI::listKeys()
  
     exec(cmd);
     string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("errorMessage.txt");
+    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
 
     if(!errorMessage.empty())
     {
