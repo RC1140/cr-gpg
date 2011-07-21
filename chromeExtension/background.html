@@ -25,6 +25,7 @@
                 var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
                 var mailMessage = request.encrypt.message;
                 mailMessage = mailMessage.replace(/`/gi,"\\`");
+                mailMessage = mailMessage.replace(/"/gi,"\\\"");
                 sendResponse({message: plugin0().encrypt(mailList,mailMessage),domid:request.encrypt.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
