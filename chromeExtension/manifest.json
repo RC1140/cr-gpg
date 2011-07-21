@@ -13,8 +13,9 @@
   },
   "options_page": "options.html",
   "plugins": [
-     { 
-        "path": "gmailGPG.plugin" }
+     {"path": "gmailGPG.plugin" },
+     {"path": "gmailGPG.dll"},
+     {"path": "gmailGPG.so"}
   ],
   "content_scripts": [
       { "matches": ["http://*/*", "https://*/*"], 

@@ -4,6 +4,7 @@
 
     <object id="plugin0" type="application/x-gmailgpg"></object><br />
     <script>
+        var alerted = false;
         function plugin0()
         {
             return document.getElementById('plugin0');
@@ -22,13 +23,16 @@
             plugin0().tempPath = tempPath;
             if (request.messageType == 'encrypt'){
                 var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
-                sendResponse({message: plugin0().encrypt(mailList,request.encrypt.message),domid:request.encrypt.domel});
+                var mailMessage = request.encrypt.message;
+                mailMessage = mailMessage.replace(/`/gi,"\\`");
+                sendResponse({message: plugin0().encrypt(mailList,mailMessage),domid:request.encrypt.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
             }else if(request.messageType == 'optionLoad'){
               chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')});
               sendResponse('options opened');
-            }else if(request.messageType == 'checkOptions'){
+            }else if(request.messageType == 'checkOptions' && !alerted){
+                alerted = true;
                 var gpgPath = localStorage['gpgPath'];
                 var tempPath = localStorage['tempPath'];
                 var gpgSet = false;

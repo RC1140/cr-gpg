@@ -9,7 +9,7 @@ $(document).ready(function(){
             if(returnMessage.length == 1){
                 $('#ecmessage').val('Invalid Recipients or no public key found for recipients');   
             }else{
-                $('#ecmessage').text(returnMessage);   
+                $('#ecmessage').val(returnMessage);   
             }
         });
     });
@@ -28,7 +28,7 @@ $(document).ready(function(){
         }
         plugin0().appPath = gpgPath;
         plugin0().tempPath = tempPath;
-        $('#sigmessage').text(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
+        $('#sigmessage').val(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
     });
 
     $('a.verify').click(function(){
@@ -56,7 +56,7 @@ $(document).ready(function(){
         }
         plugin0().appPath = gpgPath;
         plugin0().tempPath = tempPath;
-        $('textarea.message').text(plugin0().importKey($('textarea.message').val()));   
+        $('textarea.message').val(plugin0().importKey($('textarea.message').val()));   
     });
     $('textarea').click(function(){
         if($(this).text() == 'Enter text here'){

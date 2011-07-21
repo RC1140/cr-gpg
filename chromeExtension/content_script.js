@@ -18,6 +18,11 @@ $(document).ready(function(){
                                 if(response.message.indexOf('no valid OpenPGP data found') == -1){
                                     var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
                                     var tempMessage = response.message.replace(/\n/g, '<br>');
+                                    if(tempMessage.indexOf('^') != -1){
+                                        tempMessage = tempMessage.replace(/\^/g, '<br>');
+                                        tempMessage = tempMessage.substring(1,tempMessage.length -1);
+                                    }
+
                                     if($.trim(response.message).length == 0){
                                         alert('Invalid Passphrase'); 
                                     }else{

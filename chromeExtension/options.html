@@ -1,49 +1,48 @@
+<script src="jquery-1.6.1.min.js"></script>
+<script src="jquery-ui-1.8.13.custom.js"></script>
+<link rel=StyleSheet href="jquery-ui-1.8.11.thinkst.css" type="text/css">
+<style type="text/css">
+    body {min-width:700;min-height:300;}
+</style>
+
 <html>
-    <head><title>GPG Options</title>
     <script>
+        $(document).ready(function(){
+            $(function() {
+                $( "#tabs" ).tabs();
+            });
+        });
         chrome.extension.onRequest.addListener(
         function(request, sender, sendResponse) {
             if(request.messageType == 'alertUser'){
-                var userAlerted = false;
                 if(!request.gpg){
                     alert('No gpg path has been set , please update via the options page for the cr-gpg'); 
-                    userAlerted = true;
+                    top.userAlerted = true;
                 }
                 if(!request.temp && !userAlerted){
                     alert('No temp path has been set , please update via the options page for the cr-gpg'); 
+                    top.userAlerted = true;
                 }
             }
         });
     </script>
+                    <script type="text/javascript">
 
-    </head>
-<script type="text/javascript">
+                        // Saves options to localStorage.
+                    function save_options() {
+                        var gpgPath = document.getElementById("gpgPath");
+                        localStorage["gpgPath"] = gpgPath.value;
 
-        // Saves options to localStorage.
-    function save_options() {
-        var gpgPath = document.getElementById("gpgPath");
-        //if(!(/\/$/.test(gpgPath.value.toString()))){
-                //!(/\\$/.test(gpgPath.value.toString()))
-         //       alert('Please ensure that your gpg path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
-          //      return;
-        //}
-        localStorage["gpgPath"] = gpgPath.value;
-
-        var tempPath = document.getElementById("tempPath");
-        //if(!(/\/$/.test(tempPath.value.toString()))){
-         //       alert('Please ensure that your temp path ends with a [/]' + gpgPath.value[gpgPath.value.length - 1]);
-          //      return;
-        //}
-        localStorage["tempPath"] = tempPath.value;
-        chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
-                console.log(response);
-                if(response == 'failed'){
-                    alert('options saved but parameters provided are invalid');
-                }else{
-                    alert('options saved');
-                }
-        });
-     }
+                        var tempPath = document.getElementById("tempPath");
+                        localStorage["tempPath"] = tempPath.value;
+                        chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
+                                if(response == 'failed'){
+                                    alert('options saved but parameters provided are invalid');
+                                }else{
+                                    alert('options saved');
+                                }
+                                });
+                    }
 
 // Restores select box state to saved value from localStorage.
 function restore_options() {
@@ -68,19 +67,46 @@ function restore_temp_default() {
 }
 </script>
 
-<body onload="restore_options()">
-    <table>
-        <tr>
-            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input>
-                <a onclick="restore_gpg_default()" href="#">Use Default</a>
-            </td>
-        </tr>
-        <tr>
-            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
-                <a onclick="restore_temp_default()" href="#">Use Default</a>
-            </td>
-        </tr>
-    </table>
-    <button onclick="save_options()">Save</button>
-</body>
-                                                                                </html>
+
+    <head><title>GPG Options</title> </head>
+    <body onload="restore_options()">
+        <div class="interface">
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tabs-1">Settings</a></li>
+                    <li><a href="#tabs-2">About</a></li>
+                </ul>
+                <div id="tabs-1">
+                    <table>
+                        <tr>
+                            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input>
+                                <a onclick="restore_gpg_default()" href="#">Use Default</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
+                                <a onclick="restore_temp_default()" href="#">Use Default</a>
+                            </td>
+                        </tr>
+                    </table>
+                    <button onclick="save_options()">Save</button>
+
+                </div>
+                <div id="tabs-2">
+                    <div>
+                        <img src="icon.png" style="float:right" />
+                        <h2>About: Cr-gpg (Version : 0.6.1)</h2>
+                        <h2 style="color:red">Note: This plugin is Alpha</h2>
+						<p> Cr-gpg is a quick hack to bridge your Gmail (in your Chrome browser)
+							 and your locally installed copy of gpg. 
+							 It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability and <u>doesnt</u> use GPGME!<br>
+							 <i>(We said it was a quick hack!)</i>
+						 </p>                        <span style="float:left"><b><a href="http://thinkst.com/tools/cr-gpg">http://thinkst.com/tools/cr-gpg</a></b></span>
+                        <span style="float:right"><b>jameel@thinkst.com</b></span>
+                        <br/>
+                    </div>
+                </div>
+
+    </body>
+
+</html>
