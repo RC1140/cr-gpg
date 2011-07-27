@@ -30,6 +30,7 @@ public:
     std::string get_version();
 
     std::string readAndRemoveErrorFile(std::string);
+    std::string readTempFile(const std::string );
     std::string readFileClean(std::string fileName);
     FB::variant encryptMessage(const FB::variant& recipients,const FB::variant& msg);
     FB::variant decryptMessage(const FB::variant& password,const FB::variant& msg);

@@ -1,13 +1,10 @@
 #include "JSObject.h"
 #include "variant_list.h"
 #include "DOM/Document.h"
-
 #include "gmailGPGAPI.h"
-
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <sys/types.h>
-//#include <unistd.h> 
 #include <iostream> 
 #include <fstream>
 #include <string> 
@@ -15,6 +12,25 @@
 
 using namespace std;
 
+class Clean_Up_File {
+    char* filename_;
+public:
+    Clean_Up_File(string basePath, string fileData){ 
+        basePath.append("tmpfileXXXXXX");
+        char *tmpname = strdup(basePath.c_str());
+        filename_ = tmpname;
+        mkstemp(tmpname);
+        ofstream tmpWriter(tmpname);
+        tmpWriter << fileData;
+        tmpWriter.close();
+    }
+    ~Clean_Up_File(){
+        remove(filename_); 
+    }
+    char* getFileName(){
+        return this->filename_; 
+    }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @fn gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr host)
@@ -73,6 +89,21 @@ std::string gmailGPGAPI::readAndRemoveErrorFile(const std::string fileName)
     return returnData;
 }
 
+std::string gmailGPGAPI::readTempFile(const std::string fileName)
+{
+    string returnData = "";
+    string line;
+    ifstream myfile;
+    myfile.open(fileName.c_str());
+    while ( myfile.good() )
+    {
+        getline (myfile,line);
+        returnData.append(line);
+        returnData.append("\n");
+    }
+    myfile.close();
+    return returnData;
+}
 gmailGPGPtr gmailGPGAPI::getPlugin()
 {
     gmailGPGPtr plugin(m_plugin.lock());
@@ -125,91 +156,112 @@ string exec(string cmd) {
     return "";
 }
 
+string sendMessageToCommand(string command,string message){
+    //return command;
+    FILE *fp;
+    int status;
+    char path[200];
+    string returnData ="";
+
+    fp = popen(command.c_str(), "w");
+    if (fp == NULL)
+        return "Unable to open Stream";
+
+    fputs(message.c_str(),fp);
+    status = pclose(fp);
+    if (status == -1) {
+        return "stream close error";
+    } else {
+        return returnData;
+    }
+}
 //Encrypts a message with the list of recipients provided
 FB::variant gmailGPGAPI::encryptMessage(const FB::variant& recipients,const FB::variant& msg)
 {
-    string tempFileLocation = m_tempPath + "errorMessage.txt";
-    string tempOutputLocation = m_tempPath + "outputMessage.txt";
-    string gpgFileLocation = m_appPath + "gpg ";
+    try{
 
-    vector<string> peopleToSendTo = recipients.convert_cast<vector<string> >();
-    string cmd = "";
-    cmd.append("echo \"");
-    cmd.append(msg.convert_cast<string>());
-    cmd.append("\" |");
-    cmd.append(" ");
-    cmd.append(gpgFileLocation);
-    cmd.append("--encrypt --no-tty --armor");
-    cmd.append(" --trust-model=always");
-    for (unsigned int i = 0; i < peopleToSendTo.size(); i++) {
-        cmd.append(" -r ");
-        cmd.append(peopleToSendTo.at(i));
+        string tempFileLocation = m_tempPath + "errorMessage.txt";
+        string tempOutputLocation = m_tempPath + "outputMessage.txt";
+        string gpgFileLocation = m_appPath + "gpg ";
+
+        vector<string> peopleToSendTo = recipients.convert_cast<vector<string> >();
+        string cmd = "";
+        cmd.append(gpgFileLocation);
+        cmd.append("-e --armor");
+        cmd.append(" --trust-model=always");
+        for (unsigned int i = 0; i < peopleToSendTo.size(); i++) {
+            cmd.append(" -r");
+            cmd.append(peopleToSendTo.at(i));
+        }
+        cmd.append(" --output ");
+        cmd.append(tempOutputLocation);
+        cmd.append(" 2>");
+        cmd.append(tempFileLocation);
+
+        sendMessageToCommand(cmd,msg.convert_cast<string>());
+        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
+        string returnData = readAndRemoveErrorFile("outputMessage.txt");
+
+        if(!errorMessage.empty() && returnData.empty())
+        {
+            return errorMessage;
+        }
+        return returnData;
+    }catch(exception& e){
+        return "A exception was caught something went very wrong"; 
     }
-    cmd.append(" 1>");
-    cmd.append(tempOutputLocation);
-    cmd.append(" 2>");
-    cmd.append(tempFileLocation);
-
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("outputMessage.txt");
-
-    if(!errorMessage.empty() && returnData.empty())
-    {
-        return errorMessage;
-    }
-    
-    return returnData;
 }
 
+string getMessageFromCommand(string command){
+    FILE *fp;
+    int status;
+    char path[PATH_MAX];
+    fp = popen(command.c_str(), "r");
+    if (fp == NULL)
+        return "";
+    string returnData = "";
+    while (fgets(path, PATH_MAX, fp) != NULL)
+        returnData.append(path);
+
+    status = pclose(fp);
+    return returnData;
+}
 //Decrypts a message using the password provided and the message passed in , this does require
 //that you have the private key installed locally.
 FB::variant gmailGPGAPI::decryptMessage(const FB::variant& password,const FB::variant& msg)
 {
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string tempOutputLocation = m_tempPath + "outputMessage.gpg";
-    string errorFileLocation = m_tempPath + "errorMessage.txt";
-    string gpgFileLocation = m_appPath + "gpg ";
+    try
+    {
+        Clean_Up_File tempMessageHolder(m_tempPath,msg.convert_cast<string>().c_str());
+        string tempFileLocation = tempMessageHolder.getFileName();
+        string errorFileLocation = m_tempPath + "errorMessage.txt";
+        string gpgFileLocation = m_appPath + "gpg ";
 
-    string cmd = "";
-    ifstream fin(tempFileLocation.c_str());
-    if(fin)
-    {
-        fin.close();
-        remove(tempFileLocation.c_str());
+        string cmd = "";
+        cmd.append("echo \"");
+        cmd.append(password.convert_cast<string>());
+        cmd.append("\" |");
+        cmd.append(" ");
+        cmd.append(gpgFileLocation);
+        cmd.append(" --no-tty --passphrase-fd 0");
+        cmd.append(" -d ");
+        cmd.append(tempFileLocation);
+        cmd.append(" 2>");
+        cmd.append(errorFileLocation);
+
+        string returnData = getMessageFromCommand(cmd);
+        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
+
+        remove(tempFileLocation.c_str());    
+        if(!errorMessage.empty() && returnData.empty())
+        {
+            return errorMessage;
+        }
+
+        return returnData;
+    }catch(exception& e){
+        return "A error occured";
     }
-    ofstream encMessageContainer(tempFileLocation.c_str());
-    
-    if (encMessageContainer.is_open())
-    {
-        encMessageContainer << msg.convert_cast<string>().c_str();
-        encMessageContainer.close();
-    }
-    
-    cmd.append("echo \"");
-    cmd.append(password.convert_cast<string>());
-    cmd.append("\" |");
-    cmd.append(" ");
-    cmd.append(gpgFileLocation);
-    cmd.append(" --no-tty --passphrase-fd 0");
-    cmd.append(" -d ");
-    cmd.append(tempFileLocation);
-    cmd.append(" 1>");
-    cmd.append(tempOutputLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
-        
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("outputMessage.gpg");
-    
-    remove(tempFileLocation.c_str());    
-    if(!errorMessage.empty() && returnData.empty())
-    {
-        return errorMessage;
-    }
-    
-    return returnData;
 }
 
 //Imports a users public key
@@ -276,58 +328,51 @@ FB::variant gmailGPGAPI::verifyMessage(const FB::variant& message)
 //Verifies wether a message is ok and has not been tampered with
 FB::variant gmailGPGAPI::clearSignMessage(const FB::variant& message,const FB::variant& password)
 {
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string errorFileLocation = m_tempPath + "errorMessage.txt";
-    string clearSigFileLocation = m_tempPath + "tmpMessage.gpg.asc";
-    
-    string gpgFileLocation = m_appPath + "gpg ";
-    
-    string returnData = "";
-    string cmd = "";
-    
-    ifstream fin(tempFileLocation.c_str());
-    if(fin)
-    {
-        fin.close();
-        remove(tempFileLocation.c_str());
-    }
-    ofstream encMessageContainer (tempFileLocation.c_str());
-    
-    if (encMessageContainer.is_open())
-    {
-        encMessageContainer << message.convert_cast<string>().c_str();
-        encMessageContainer.close();
-    }
-    
-    cmd.append("echo \"");
-    cmd.append(password.convert_cast<string>());
-    cmd.append("\" |");
-    cmd.append(" ");
-    cmd.append(gpgFileLocation);
-    cmd.append(" --no-tty --passphrase-fd 0");
-    cmd.append(" --clearsign ");
-    cmd.append(tempFileLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
-   
-    if (system(NULL)){
+    try{
+        string tempFileName = m_tempPath + "tmpMessage.gpg";
+        string errorFileLocation = m_tempPath + "errorMessage.txt";
+        string clearSigFileLocation = m_tempPath + "tmpMessage.gpg.asc";
+        string gpgFileLocation = m_appPath + "gpg ";
+        string returnData = "";
+        string cmd = "";
 
-    }
-    else{
-        return ("");
-    }
+        ifstream fin(tempFileName.c_str());
+        if(fin){
+            fin.close();
+            remove(tempFileName.c_str());
+        }
+        
+        ofstream messageToSign(tempFileName.c_str());
+        if(messageToSign.is_open())
+        {
+            messageToSign << message.convert_cast<string>().c_str();
+            messageToSign.close();
+        }
 
-    system (cmd.c_str());
-    string sigMessage = readAndRemoveErrorFile("tmpMessage.gpg.asc");
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    remove(tempFileLocation.c_str());    
+        cmd.append("echo \"");
+        cmd.append(password.convert_cast<string>());
+        cmd.append("\" |");
+        cmd.append(" ");
+        cmd.append(gpgFileLocation);
+        cmd.append(" --no-tty --passphrase-fd 0");
+        cmd.append(" --clearsign ");
+        cmd.append(tempFileName);
+        cmd.append(" 2>");
+        cmd.append(errorFileLocation);
+      
+        exec(cmd.c_str());
+        string sigMessage = readAndRemoveErrorFile("tmpMessage.gpg.asc");
+        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
 
-    if(!errorMessage.empty() && sigMessage.empty())
-    {
-        return errorMessage;
+        if(!errorMessage.empty() && sigMessage.empty())
+        {
+            return errorMessage;
+        }
+        
+        return sigMessage;
+    }catch(exception& e){
+        return "A error occured";
     }
-    
-    return sigMessage;
 }
 
 FB::variant gmailGPGAPI::listKeys()
@@ -344,7 +389,7 @@ FB::variant gmailGPGAPI::listKeys()
  
     exec(cmd);
     string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
+    string returnData = readAndRemoveErrorFile("errorMessage.txt");
 
     if(!errorMessage.empty())
     {
@@ -375,9 +420,19 @@ FB::variant gmailGPGAPI::listPrivateKeys()
     }
     return returnData;
 }
-
+       
 FB::variant gmailGPGAPI::testOptions()
 {
+    char* tempFileName;
+    try{
+        Clean_Up_File tempWriter(m_tempPath,"test data");
+        tempFileName = tempWriter.getFileName();
+    }catch(exception& e){
+        if(tempFileName){
+            remove(tempFileName);
+        }
+    }
+
     string errorFileLocation = m_tempPath +"errorMessage.txt";
     string tempFileLocation = m_tempPath + "tmpMessage.gpg";
     string gpgFileLocation = m_appPath +"gpg ";
