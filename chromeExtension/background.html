@@ -22,10 +22,11 @@
             plugin0().appPath = gpgPath;
             plugin0().tempPath = tempPath;
             if (request.messageType == 'encrypt'){
-                var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
+                var mailList = request.encrypt.maillist;//.filter(function(val) { return val !== null; });
+                if( localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
+                       mailList.push(localStorage["personaladdress"]);
+                }
                 var mailMessage = request.encrypt.message;
-                mailMessage = mailMessage.replace(/`/gi,"\\`");
-                mailMessage = mailMessage.replace(/"/gi,"\\\"");
                 sendResponse({message: plugin0().encrypt(mailList,mailMessage),domid:request.encrypt.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
@@ -57,10 +58,21 @@
                 plugin0().tempPath = tempPath;
                 var returnMessage = plugin0().testOptions();
                 if(returnMessage.indexOf('http://gnu.org/licenses/gpl.html') != -1){
-                     sendResponse('ok');
+                     if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
+                         var messageblock = plugin0().encrypt([localStorage["personaladdress"]],'Test Message');
+                         if(messageblock.indexOf('-----BEGIN PGP MESSAGE-----') != 0){
+                             sendResponse('selfsign failed');
+                             return;
+                         }else{
+                             sendResponse('ok');
+                        }
+                    }else{
+                         sendResponse('ok');
+                    };
                 }else{
                      sendResponse('failed');
                 }
+                
             }
 //
         });

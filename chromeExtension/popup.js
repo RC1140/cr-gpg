@@ -69,6 +69,51 @@ $(document).ready(function(){
         };
 
     });
+    $('.usedefault-gpg').click(function(){
+        $('#gpgPath').val('/opt/local/bin/');
+    });
+    $('.usedefault-temp').click(function(){
+        $('#tempPath').val('/tmp/');
+    });
+    $('button.save-options').click(function(){
+        localStorage["useAutoInclude"] = $('#useAutoInclude')[0].checked;
+        if(localStorage["useAutoInclude"] != 'false'){
+            if($('#personaladdress').val() != ''){
+                localStorage["personaladdress"] =  $('#personaladdress').val();
+            }else{
+                $('#options-reponse').html('You have ticked self sign but not provided a email address');   
+                $('#options-reponse').css('color','red');
+                return; 
+            }
+        };
+        var gpgPath = document.getElementById("gpgPath");
+        localStorage["gpgPath"] = gpgPath.value;
+        var tempPath = document.getElementById("tempPath");
+        localStorage["tempPath"] = tempPath.value;
+        chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
+                if(response == 'failed'){
+                    $('#options-reponse').html('options saved but parameters provided are invalid');   
+                    $('#options-reponse').css('color','red');
+                }else if(response == 'selfsign failed'){
+                    localStorage["useAutoInlcude"] = false;
+                    $('#options-reponse').html('No public key found for the email address set for Encrypt to self , as such it has been disabled till a valid public key is set');   
+                    $('#options-reponse').css('color','red');
+                }else{
+                    $('#options-reponse').html('options saved');   
+                    $('#options-reponse').css('color','green');
+                }
+
+        });
+    });
+
+    if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
+        $('#useAutoInclude')[0].checked = true;
+    };
+
+    $('#personaladdress').val(localStorage["personaladdress"]);
+    $('#gpgPath').val(localStorage["gpgPath"]);
+    $('#tempPath').val(localStorage["tempPath"]);
+
     $(function() {
         $( "#tabs" ).tabs();
     });

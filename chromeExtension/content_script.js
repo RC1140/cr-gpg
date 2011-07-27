@@ -51,22 +51,24 @@ $(document).ready(function(){
         $('[customFunction="encrypt"]').live('click',function(){
                     event.preventDefault();
                     var messageElement = $(this).parent().parent().parent().parent().parent().next();
-                    var fromList = $(this).parent().parent().parent().parent().parent().parent().prev();
-                    var emailList = $('textarea[name="to"].dK.nr',fromList).val().replace(/,$/,'').split(',');
+                    var inlineReply = $(this).closest('.gs').find('textarea.dK.nr');
+                    if(inlineReply.length == 0){
+                        inlineReply = $(this).closest('.fN').find('textarea.dK.nr');
+                    };
+                    var encryptionList = '';
+                    inlineReply.each(function(index,item){
+                            if($(item).val() != ''){
+                                var emailAddress = $(item).val();
+                                if(/<.*>/.test(emailAddress)){
+                                    emailAddress = emailAddress.match(/<.*>/)[0].replace('<','').replace('>','');
+                                    emailAddress  = emailAddress.trim();
+                                };
+                                encryptionList += emailAddress +',';
+                            }
+                        });
+                    encryptionList = encryptionList.replace(/,$/,'').split(',');
                     var emailMessage = $('.Ak',messageElement).val(); 
-                    for(var i=0;i<emailList.length;i++){
-                        if(/<.*>/.test(emailList[i])){
-                            emailList[i] = emailList[i].match(/<.*>/)[0].replace('<','').replace('>','');
-                            emailList[i]  = emailList[i].trim();
-                        };
-                    };
-                    for(var i=0;i<emailList.length;i++){
-                        if(emailList[i].trim() == ''){
-                            emailList.splice(i,1);
-                            //delete emailList[i]; 
-                        }
-                    };
-                    chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(this).attr('id'),'maillist':emailList}}, function(response) {
+                    chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(this).attr('id'),'maillist':encryptionList}}, function(response) {
                         var returnMessage = response.message;
                         if(returnMessage.length > 1){
                             var messageElement = $('#'+response.domid.toString()).parent().parent().parent().parent().parent().next();
