@@ -8,7 +8,7 @@
 <html>
     <body>
         <div class="interface">
-            <div id="tabs">
+            <div id="tabs" style="font-size: 1em;">
                 <ul>
                     <li><a href="#tabs-1">Import Key</a></li>
                     <li><a href="#tabs-2">Encrypt Text</a></li>
@@ -17,54 +17,47 @@
                     <li><a href="#tabs-5">About</a></li>
                 </ul>
                 <div id="tabs-1">
-                    <h3>If you need to import a users key , please paste the ascii armor formatted key below</h3>
+                    <div style="font-size: 1em; font-weight: bold;">To import a users key, paste the ascii armored key below</div><br/>
                     <div width="280px" height="200px">
-                        <form>
-                            Key : 
-                            <textarea class="message" rows="10" cols="75">Please Paste your key here</textarea>
-                            <a class="import" href="#">Import Key</a> 
-                        </form>
+                            <textarea class="message" rows="10" cols="85" style="font-size: .8em;">Please Paste your key here</textarea><BR/><BR/>
+                            <button class="import" style="font-size: 1em;">Import Key</button> 
                     </div>
+					<div style="font-size: .9em;" align="right"><a href="http://thinkst.com">home</a> |<a href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
                 </div>
                 <div id="tabs-2">
-                    <h3>Encrypt Text</h3>
+                    <div style="font-size: 1em; font-weight: bold;">Encrypt Text</div>
                     <div width="280px" height="200px">
-                        <form>
-                            Recipients (comma seperated) : 
-                            <input id="recipients" width="100%"/><br/>
-                            Message : 
-                            <textarea id="ecmessage" rows="10" cols="75">Enter text here</textarea>
-                            <a class="encrypt" id="2002"  href="#">Encrypt Text</a> 
-                        </form>
+                        Recipients (comma separated) : 
+                        <input id="recipients" width="100%"/><br/>
+                        <textarea id="ecmessage" rows="10" cols="85" style="font-size: .8em;">Enter text here</textarea><BR/><BR/>
+                        <button class="encrypt" style="font-size: 1em;" id="2002">Encrypt Text</button> 
                     </div>
-
+					<div style="font-size: .9em;" align="right"><a href="http://thinkst.com">home</a> |<a href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
                 </div>
                 <div id="tabs-3">
-                    <h3>Sign Message</h3>
+                    <div style="font-size: 1em; font-weight: bold;">Sign Message</div>
                     <div width="280px" height="200px">
-                        <form>
                             Password : 
                             <input id="sigPass" width="100%" type="password"/><br/>
 
-                            Message : 
-                            <textarea id="sigmessage" rows="10" cols="75">Enter text here</textarea>
+                            <textarea id="sigmessage" rows="10" cols="85" style="font-size: .8em;">Enter text here</textarea>
                             <div class="verify" style="background-color:#888888;"></div>
-                            <a class="sign" id="2003"  href="#">Sign Message</a> 
-                            <a class="verify" id="2003"  href="#">Verify Message</a> 
-                        </form>
+                            <button class="sign" style="font-size: 1em;">Sign Message</a></button> 
+                            <button class="verify" style="font-size: 1em;">Verify Message</button> 
                     </div>
+					<div style="font-size: .9em;" align="right"><a href="http://thinkst.com">home</a> |<a href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
                 </div>
                 <div id="tabs-4">
                    <div>
                        <table>
                             <tr>
                                 <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input>
-                                    <a class="usedefault-gpg" href="#">Use Default</a>
+                                    <button class="usedefault-gpg">Use Default</button>
                                 </td>
                             </tr>
                             <tr>
                                 <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
-                                    <a class="usedefault-temp" href="#">Use Default</a>
+                                    <button class="usedefault-temp">Use Default</button>
                                 </td>
                             </tr>
                             <tr>
@@ -77,20 +70,22 @@
                         <div id="options-reponse"></div>
                         <button class="save-options">Save</button>
                     </div>
-                </div>
+       				<div style="font-size: .9em;" align="right"><a href="http://thinkst.com">home</a> |<a href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
+         		</div>
                 <div id="tabs-5">
                     <div>
                         <img src="icon.png" style="float:right" />
-                        <h2>About: Cr-gpg (Version : 0.7.1)</h2>
-                        <h2 style="color:red">Note: This plugin is Alpha</h2>
-						<p> Cr-gpg is a quick hack to bridge your Gmail (in your Chrome browser)
-							 and your locally installed copy of gpg. 
-							 It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability and <u>doesnt</u> use GPGME!<br>
+                        <div style="font-size: 1.1em; font-weight: bold;">Cr-gpg (Version : 0.7.2)</div>
+                        <div style="color:red; font-size: 1.1em; font-weight: bold;">This plugin is Alpha</div>
+						<p> Cr-gpg is a quick hack to allow you to use common cryptographic functionality (provided by gpg) inside Gmail. 
+							 It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability and <u>doesnt</u> use GPGME!
 							 <i>(We said it was a quick hack!)</i>
-						 </p>                        <span style="float:left"><b><a href="http://thinkst.com/tools/cr-gpg">http://thinkst.com/tools/cr-gpg</a></b></span>
-                        <span style="float:right"><b>jameel@thinkst.com</b></span>
-                        <br/>
+						 </p>                        
+						<span style="float:left">Hacked together by: jameel@thinkst.com<BR/>
+                        Grab new versions at: <b><a href="http://thinkst.com/tools/cr-gpg">http://thinkst.com/tools/cr-gpg</a></b></span>
+                        <br/><br/><br/>
                     </div>
+					<div style="font-size: .9em;" align="right"><a href="http://thinkst.com">home</a> |<a href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
                 </div>
 
             </div>

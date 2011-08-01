@@ -9,6 +9,27 @@
         {
             return document.getElementById('plugin0');
         }
+        var testSettings = function(){
+            plugin0().appPath = localStorage['gpgPath'];
+            plugin0().tempPath = localStorage['tempPath'];
+            var returnMessage = plugin0().testOptions();
+            if(returnMessage.indexOf('http://gnu.org/licenses/gpl.html') != -1){
+                 if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
+                     var messageblock = plugin0().encrypt([localStorage["personaladdress"]],'Test Message');
+                     if(messageblock.indexOf('-----BEGIN PGP MESSAGE-----') != 0){
+                         sendResponse('selfsign failed');
+                         return;
+                     }else{
+                         sendResponse('ok');
+                    }
+                }else{
+                     sendResponse('ok');
+                };
+            }else{
+                 sendResponse('failed');
+            }
+        };
+
         chrome.extension.onRequest.addListener(
         function(request, sender, sendResponse) {
             var gpgPath = localStorage['gpgPath'];
@@ -28,6 +49,10 @@
                 }
                 var mailMessage = request.encrypt.message;
                 sendResponse({message: plugin0().encrypt(mailList,mailMessage),domid:request.encrypt.domel});
+            }else if(request.messageType == 'sign'){
+                sendResponse({message: plugin0().clearSignMessage(request.sign.message,request.sign.passphrase),domid:request.sign.domel});
+            }else if(request.messageType == 'verify'){
+                sendResponse({message: plugin0().verifyMessage(request.verify.message),domid:request.verify.domel});
             }else if(request.messageType == 'decrypt'){
                 sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
             }else if(request.messageType == 'optionLoad'){
@@ -52,29 +77,8 @@
                 };
 
             }else if(request.messageType == 'testSettings'){
-                var gpgPath = localStorage['gpgPath'];
-                var tempPath = localStorage['tempPath'];
-                plugin0().appPath = gpgPath;
-                plugin0().tempPath = tempPath;
-                var returnMessage = plugin0().testOptions();
-                if(returnMessage.indexOf('http://gnu.org/licenses/gpl.html') != -1){
-                     if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
-                         var messageblock = plugin0().encrypt([localStorage["personaladdress"]],'Test Message');
-                         if(messageblock.indexOf('-----BEGIN PGP MESSAGE-----') != 0){
-                             sendResponse('selfsign failed');
-                             return;
-                         }else{
-                             sendResponse('ok');
-                        }
-                    }else{
-                         sendResponse('ok');
-                    };
-                }else{
-                     sendResponse('failed');
-                }
-                
+                testSettings();                            
             }
-//
         });
     </script>
 </html>

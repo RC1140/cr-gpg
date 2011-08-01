@@ -3,7 +3,7 @@ $(document).ready(function(){
         //Listen for decrypt click
         $('[customFunction="decrypt"]').live('click',function(){
             event.preventDefault();
-            var test = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase">Passphrase : <input type="password" width="100%"></input></div>');
+            var test = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase" style="font-size: 0.7em;">Passphrase : <input type="password" width="100%"></input></div>');
             jQuery.dLoader = $(test).dialog({
                 width:450,
                 buttons: [{
@@ -82,12 +82,66 @@ $(document).ready(function(){
                         }
                     });
         });
-        
+
+        $('[customFunction="verify"]').live('click',function(){
+                event.preventDefault();
+                var messageElement = $(this).closest('.gs').find('.ii.gt').text();
+                chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
+                    var returnMessage = response.message;
+                    if(returnMessage.length > 1){
+                        var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
+                        alert(returnMessage); 
+                        return;
+                    }else{
+                        alert('No public keys found for recipients');
+                    }
+                });
+        }); 
+        $('[customFunction="sign"]').live('click',function(){
+            event.preventDefault();
+            var test = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase">Passphrase : <input type="password" width="100%"></input></div>');
+            jQuery.dLoader = $(test).dialog({
+                width:450,
+                buttons: [{
+                    text: "Ok",
+                    click: function () {
+                        var messageElement = $('#'+$(this).attr('decID')).closest('.eJ').parent().find('.Ak');
+                        var emailMessage = messageElement.val(); 
+                        var pp = $('input[type="password"]',this).val();
+                        chrome.extension.sendRequest({'messageType':'sign',sign: {'passphrase':pp,'message':emailMessage,'domel':$(this).attr('decID')}}, function(response) {
+                            var returnMessage = response.message;
+                            if(returnMessage.length > 1){
+                                var messageElement = $('#'+response.domid.toString()).parent().parent().parent().parent().parent().next();
+                                if(returnMessage.indexOf('gpg:') != -1){
+                                        alert(returnMessage); 
+                                        return;
+                                };
+                                $('.Ak',messageElement).val(returnMessage);
+                            }else{
+                                alert('No public keys found for recipients');
+                            }
+                            jQuery.dLoader.dialog("close");
+
+                      });                    
+                    }
+                }, {
+                    text: "Cancel",
+                    click: function () {
+                        $(this).dialog("close");
+                    }
+                }]
+            });
+            
+        }); 
+
         //Setup monitors for the compose mail section
         $('.nH').live('mouseover',function(){  
                 $('.es.el',this).each(function(index){
                     if($(this).parent().prev().length == 0){
-                        if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 3){
+                        if($(this).closest('span[customFunction="encrypt"]') >= 0){
+                                return; 
+                        }
+                        if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 4){
                                 return;
                         };
                         var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
@@ -97,7 +151,11 @@ $(document).ready(function(){
                             .prepend(['<td class="fw" width="130px;">',
                                         '<img class="fB" src="images/cleardot.gif" alt="">',
                                         '<span id="'+id+'" customFunction="encrypt" class="es el">',
-                                        '<a>Encrypt Message</a></span></td>'].join(''));
+                                        '<a>Encrypt Message</a></span></td>'].join('')+
+                                        ['<td class="fw" width="130px;">',
+                                        '<img class="fB" src="images/cleardot.gif" alt="">',
+                                        '<span id="'+id+'" customFunction="sign" class="es el">',
+                                        '<a>Sign Message</a></span></td>'].join(''));
                     }
                 });
         });
@@ -105,7 +163,7 @@ $(document).ready(function(){
         $('.Bs.nH.iY').live('mouseover',function(){  // Hook over the total list of messages
             $('.es.el',this).each(function(index){
                     if($(this).parent().prev().length == 0){
-                        if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 3){
+                        if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 4){
                                 return;
                         };
                         var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
@@ -115,14 +173,19 @@ $(document).ready(function(){
                             .prepend(['<td class="fw" width="130px;">',
                                         '<img class="fB" src="images/cleardot.gif" alt="">',
                                         '<span id="'+id+'" customFunction="encrypt" class="es el">',
-                                        '<a>Encrypt Message</a></span></td>'].join(''));
+                                        '<a>Encrypt Message</a></span></td>'].join('') +
+                                        ['<td class="fw" width="130px;">',
+                                        '<img class="fB" src="images/cleardot.gif" alt="">',
+                                        '<span id="'+id+'" customFunction="sign" class="es el">',
+                                        '<a>Sign Message</a></span></td>'].join(''));
                     }
                 });
 
             $('.cKWzSc.mD[role="button"]',this).each(function(index){
                     if($(this).parent().prev().length == 0){
                         var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                        $(this).parent().parent().prepend('<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>');
+                        $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
+                            '<td><div class="mD"><span class="mG" id="'+id+'" customFunction="verify"> Verify Message</span></div></td>'].join(''));
                     }
                 });
         });

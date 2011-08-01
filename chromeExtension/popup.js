@@ -3,7 +3,7 @@ $(document).ready(function(){
     {
         return document.getElementById('plugin0');
     }
-    $('a.encrypt').click(function(){
+    $('.encrypt').click(function(){
         chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':$('#ecmessage').val(),'maillist':$('#recipients').val().split(','),'domel':$(this).attr('id')}}, function(response) {
             var returnMessage = response.message;
             if(returnMessage.length == 1){
@@ -17,7 +17,7 @@ $(document).ready(function(){
     $('div.verify').click(function(){
         $(this).html('');
     });
-    $('a.sign').click(function(){
+    $('.sign').click(function(){
         var gpgPath = localStorage['gpgPath'];
         var tempPath = localStorage['tempPath'];
         if(!gpgPath){
@@ -31,7 +31,7 @@ $(document).ready(function(){
         $('#sigmessage').val(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
     });
 
-    $('a.verify').click(function(){
+    $('.verify').click(function(){
         var gpgPath = localStorage['gpgPath'];
         var tempPath = localStorage['tempPath'];
         if(!gpgPath){
@@ -45,7 +45,7 @@ $(document).ready(function(){
         $('div.verify').text(plugin0().verifyMessage($('#sigmessage').val()) + '. Click to Clear this Message');   
     });
 
-    $('a.import').click(function(){
+    $('.import').click(function(){
         var gpgPath = localStorage['gpgPath'];
         var tempPath = localStorage['tempPath'];
         if(!gpgPath){
