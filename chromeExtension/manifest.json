@@ -1,6 +1,6 @@
 {
   "name": "Cr-gpg",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Chrome-gpg. Quick hack that bridges gmail to your locally installed gpg.",
   "icons":{"128":"icon.png"},
   "update_url": "http://thinkst.com/tools/cr-gpg/updates.xml",
