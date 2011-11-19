@@ -1,3 +1,7 @@
+## Known Issues: 
+
+- The popup window of the extension is not useable in windows due to the way the calls are made
+
 This is a quick run though of the files in this folder
 and a basic setup.
 
