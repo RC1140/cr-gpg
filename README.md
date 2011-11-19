@@ -1,20 +1,13 @@
+## Cr-GPG: 
+
+A chrome plugin that enables gpg encryption and decryption for the gmail web interface.
+Download it from [here](http://thinkst.com/tools/cr-gpg/)
+
 ## Known Issues: 
 
 - The popup window of the extension is not useable in windows due to the way the calls are made
 
-This is a quick run though of the files in this folder
-and a basic setup.
-
-## Folders : 
-
-chromeExtension : This is the chrome extension , you need to pack
-it wil chrome to distribute it or you can load it as is.
-
-gmailGPG : This is the gpg plugin and is what interacts with the
-the gpg bin installed on your machine. To compile this you need to
-grab the FireBreath project from [here](http://www.firebreath.org/display/documentation/Download).
-Place this folder in the projects folders and run the prep command
-for your system.
+A brief tutorial can be found [at](http://blog.thinkst.com/2011/09/chrome-extension-for-gpg-in-gmail.html)
 
 ## Using the extension :
 
@@ -40,22 +33,26 @@ Clicking the link will prompt you for your passphrase with
 which to decrypt the message, a error will be show if no
 valid gpg data can be found or if the passphrase is incorrect.
 
+## Folders : 
+
+chromeExtension : This is the chrome extension , you need to pack
+it wil chrome to distribute it or you can load it as is.
+
+gmailGPG : This is the gpg plugin and is what interacts with the
+the gpg bin installed on your machine. To compile this you need to
+grab the FireBreath project from [here](http://www.firebreath.org/display/documentation/Download).
+Place this folder in the projects folders and run the prep command
+for your system.
+
 ## Other considerations :
 
 Note : If at any time a decrypt or encrypt link is not visible
 please mouse over the actual composing form or your message thread
 (when reading old mails).
 
-Note : There is some flakyness with the multiple user encryption
-especially if the user does not exist in your keyring.
-
 Note : The default paths are requirements in the extension are
-        tempPath = /tmp/
-        gpgPath = /opt/local/bin/
+       tempPath = /tmp/
+       gpgPath = /opt/local/bin/
 
        If your paths are different you can change them from the
        options menu for the chrome extension.
-
-Final Note : All the dev was done on a mac and I was unable to
-get libgpgme to build and include into a app directly , if you
-can provide me with direct info please feel free to message me.
