@@ -1,8 +1,9 @@
 {
   "name": "Cr-gpg",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Chrome-gpg. Quick hack that bridges gmail to your locally installed gpg.",
   "icons":{"128":"icon.png"},
+  "offline_enabled" : true,
   "update_url": "http://thinkst.com/tools/cr-gpg/updates.xml",
   "browser_action": {
       "default_title": "The chrome gpg encryption plugin",
@@ -18,14 +19,13 @@
   "content_scripts": [
       { "matches": ["http://mail.google.com/*", "https://mail.google.com/*"], 
         "css": ["jquery-ui-1.8.11.thinkst.css","custom.css"],
-        "js": ["jquery-1.6.1.min.js","jquery-ui-1.8.13.custom.js","content_script.js","popup.js"], 
-        "all_frames": true 
+        "js": ["jquery-1.6.1.min.js","jquery-ui-1.8.13.custom.js","content_script.js","popup.js","jquery.client.js"]
         }
   ],
   "permissions": [
+      "tabs",
       "http://mail.google.com/*", 
-      "https://mail.google.com/*",
-      "tabs"
+      "https://mail.google.com/*"
     ],
     "background_page":"background.html"
 }

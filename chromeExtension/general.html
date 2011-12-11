@@ -1,0 +1,66 @@
+<script src="jquery-1.6.1.min.js"></script>
+<script src="jquery-ui-1.8.13.custom.js"></script>
+<link rel=StyleSheet href="jquery-ui-1.8.11.thinkst.css" type="text/css">
+<style type="text/css">
+    body {min-width:750;min-height:300;}
+</style>
+<script src="popup.js"></script>
+<html>
+    <body>
+        <div class="interface">
+            <div id="tabs" style="font-size: 1em;">
+                <ul>
+                    <li><a href="#tabs-1">Import Key</a></li>
+                    <li><a href="#tabs-2">Encrypt Text</a></li>
+                    <li><a href="#tabs-3">Sign Message</a></li>
+                    <li><a href="#tabs-4">Decrypt Text</a></li>
+                </ul>
+                <div id="tabs-1">
+                    <div style="font-size: 1em; font-weight: bold;">To import a users key, paste the ascii armored key below</div><br/>
+                    <div width="280px" height="200px">
+                            <textarea class="message" rows="10" cols="85" style="font-size: .8em;">Please Paste your key here</textarea><BR/><BR/>
+                            <button class="import" style="font-size: 1em;">Import Key</button> 
+                    </div>
+                    <div style="font-size: .9em;" align="right"><a target="_blank" href="http://thinkst.com">home</a> |<a target="_blank"  href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2011 - thinkst.com</div>
+                </div>
+                <div id="tabs-2">
+                    <div style="font-size: 1em; font-weight: bold;">Encrypt Text</div>
+                    <div width="280px" height="200px">
+                        Recipients (comma separated) : 
+                        <input id="recipients" width="100%"/><br/>
+                        <textarea id="ecmessage" rows="10" cols="85" style="font-size: .8em;">Enter text here</textarea><BR/><BR/>
+                        <button class="encrypt" style="font-size: 1em;" id="2002">Encrypt Text</button> 
+                    </div>
+                    <div style="font-size: .9em;" align="right"><a target="_blank"  href="http://thinkst.com">home</a> |<a target="_blank"  href="http://blog.thinkst.com">blog</a> |Copyright &copy; 2011 - thinkst.com</div>
+                </div>
+                <div id="tabs-3">
+                    <div style="font-size: 1em; font-weight: bold;">Sign Message</div>
+                    <div width="280px" height="200px">
+                            Password : 
+                            <input id="sigPass" width="100%" type="password"/><br/>
+
+                            <textarea id="sigmessage" rows="10" cols="85" style="font-size: .8em;">Enter text here</textarea>
+                            <div class="verify" style="background-color:#888888;"></div>
+                            <button class="sign" style="font-size: 1em;">Sign Message</a></button> 
+                            <button class="verify" style="font-size: 1em;">Verify Message</button> 
+                    </div>
+                    <div style="font-size: .9em;" align="right"><a target="_blank"  href="http://thinkst.com">home</a> |<a target="_blank"  href="http://blog.thinkst.com">blog</a> |Copyright &copy; 2011 - thinkst.com</div>
+                </div>
+            <div id="tabs-4">
+                    <div style="font-size: 1em; font-weight: bold;">Decrypt Message</div>
+                    <div width="280px" height="200px">
+                            Password : 
+                            <input id="decPass" width="100%" type="password"/><br/>
+                            <textarea id="decmessage" rows="10" cols="85" style="font-size: .8em;">Paste Encrypted Message Here</textarea>
+                            <br/>
+                            <button class="decrypt" style="font-size: 1em;">Decrypt Message</a></button> 
+                    </div>
+                    <div style="font-size: .9em;" align="right"><a target="_blank"  href="http://thinkst.com">home</a> |<a target="_blank"  href="http://blog.thinkst.com">blog</a> |Copyright &copy; 2011 - thinkst.com</div>
+                </div>
+
+        
+                    </div>
+        </div>
+        <object height="1px" id="plugin0" type="application/x-gmailgpg"></object><br />
+    </body>
+</html>

@@ -1,5 +1,7 @@
 <script src="jquery-1.6.1.min.js"></script>
 <script src="jquery-ui-1.8.13.custom.js"></script>
+<script src="jquery.client.js"></script>
+
 <link rel=StyleSheet href="jquery-ui-1.8.11.thinkst.css" type="text/css">
 <style type="text/css">
     body {min-width:700;min-height:300;}
@@ -42,10 +44,27 @@ function save_options() {
     }
 
     var gpgPath = document.getElementById("gpgPath");
-    localStorage["gpgPath"] = gpgPath.value;
+    var testGPGPath = gpgPath.value.toString();
+    if(!testGPGPath.match(/\/$/)){
+        if($.client.os == 'Windows'){
+            testGPGPath += '\\';
+        }else{
+            testGPGPath += '/';
+        }
+    };
+    localStorage["gpgPath"] = testGPGPath;
 
     var tempPath = document.getElementById("tempPath");
-    localStorage["tempPath"] = tempPath.value;
+    var testTempPath = tempPath.value.toString();
+    if(!testTempPath.match(/\/$/)){
+        if($.client.os == 'Windows'){
+            testTempPath += '\\';
+        }else{
+            testTempPath += '/';
+        }
+    };
+    localStorage["tempPath"] = testTempPath;
+
     chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
             if(response == 'failed'){
                 alert('options saved but parameters provided are invalid');
@@ -77,11 +96,34 @@ function restore_options() {
 }
 function restore_gpg_default() {
     var gpgPath = document.getElementById("gpgPath");
-    gpgPath.value = '/opt/local/bin/'; 
+    switch($.client.os){
+        case 'Mac' :
+            gpgPath.value = '/opt/local/bin/'; 
+            break;
+        case 'Windows' :
+            gpgPath.value = 'C:\\Program Files (x86)\\GNU\\GnuPG\\pub\\'
+            break;
+        case 'Linux' :
+            gpgPath.value = '/usr/local/bin/'; 
+            break;
+    }
 }
 function restore_temp_default() {
     var tempPath = document.getElementById("tempPath");
-    tempPath.value = '/tmp/'; 
+    switch($.client.os){
+        case 'Mac' :
+            gpgPath.value = '/opt/local/bin/'; 
+            tempPath.value = '/tmp/'; 
+            break;
+        case 'Windows' :
+            gpgPath.value = 'C:\\Program Files (x86)\\GNU\\GnuPG\\pub\\'
+            tempPath.value = 'C:\\temp\\'; 
+            break;
+        case 'Linux' :
+            gpgPath.value = '/usr/local/bin/'; 
+            tempPath.value = '/tmp/'; 
+            break;
+    }
 }
 </script>
 
@@ -119,7 +161,7 @@ function restore_temp_default() {
                 <div id="tabs-2">
                     <div>
                         <img src="icon.png" style="float:right" />
-                        <div style="font-size: 1.1em; font-weight: bold;">Cr-gpg (Version : 0.7.5)</div>
+                        <div style="font-size: 1.1em; font-weight: bold;">Cr-gpg (Version : 0.7.6)</div>
                         <div style="color:red; font-size: 1.1em; font-weight: bold;">This plugin is Alpha</div>
 						<p> Cr-gpg is a quick hack to allow you to use common cryptographic functionality (provided by gpg) inside Gmail. 
 							 It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability and <u>doesnt</u> use GPGME!

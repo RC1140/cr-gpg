@@ -14,6 +14,10 @@ $(document).ready(function(){
         });
     });
 
+    $('#newPage').click(function(){
+        chrome.tabs.create({url:chrome.extension.getURL('general.html')});
+    });
+
     $('div.verify').click(function(){
         $(this).html('');
     });
@@ -30,7 +34,27 @@ $(document).ready(function(){
         plugin0().tempPath = tempPath;
         $('#sigmessage').val(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
     });
-
+    $('.decrypt').click(function(){
+        var gpgPath = localStorage['gpgPath'];
+        var tempPath = localStorage['tempPath'];
+        if(!gpgPath){
+            gpgPath = '/opt/local/bin/'; 
+        };
+        if(!tempPath){
+            tempPath = '/tmp/'; 
+        }
+        plugin0().appPath = gpgPath;
+        plugin0().tempPath = tempPath;
+        chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':$('#decPass').val(),'message':$('#decmessage').val()}}, function(response) {
+            if(response.message.indexOf('decryption failed') == -1){
+                if(response.message.indexOf('no valid OpenPGP data found') == -1){
+                    $('#decmessage').val(response.message); 
+                }
+            }else{
+                alert(response.message); 
+            };
+        });   
+    });
     $('.verify').click(function(){
         var gpgPath = localStorage['gpgPath'];
         var tempPath = localStorage['tempPath'];
