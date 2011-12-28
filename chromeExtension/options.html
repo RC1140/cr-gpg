@@ -104,7 +104,7 @@ function restore_gpg_default() {
             gpgPath.value = 'C:\\Program Files (x86)\\GNU\\GnuPG\\pub\\'
             break;
         case 'Linux' :
-            gpgPath.value = '/usr/local/bin/'; 
+            gpgPath.value = '/usr/bin/'; 
             break;
     }
 }
@@ -112,15 +112,12 @@ function restore_temp_default() {
     var tempPath = document.getElementById("tempPath");
     switch($.client.os){
         case 'Mac' :
-            gpgPath.value = '/opt/local/bin/'; 
             tempPath.value = '/tmp/'; 
             break;
         case 'Windows' :
-            gpgPath.value = 'C:\\Program Files (x86)\\GNU\\GnuPG\\pub\\'
             tempPath.value = 'C:\\temp\\'; 
             break;
         case 'Linux' :
-            gpgPath.value = '/usr/local/bin/'; 
             tempPath.value = '/tmp/'; 
             break;
     }

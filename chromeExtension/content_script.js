@@ -124,7 +124,7 @@ $(document).ready(function(){
             
 
         };
-        var encryptionHandler = function(that){
+        var encryptionHandler= function(that){
             var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('id')).closest('.fN').find('.Ak');
             var inlineReply = $(that).closest('.gs').find('textarea.dK.nr');
             if(inlineReply.length == 0){
@@ -157,6 +157,7 @@ $(document).ready(function(){
                 }
             });
         };
+        jQuery.encryptionHandler = encryptionHandler;
 
         $('[customFunction="simpleEncrypt"]').live('click',function(){
             event.preventDefault();
@@ -196,37 +197,107 @@ $(document).ready(function(){
         //Setup monitors for the mail detail section 
         $('*').live('mouseover',function(){
 
-            $('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div.customdec').remove();
-            var items = $('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div:first-child');
-            $(items).each(function(loopindex){
-                var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                var decryptButton = [ '<a id="'+id+'" customFunction="decrypt" ',
-                                      'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
-                                      'style="position:relative;top:7px" role="button" ',
-                                      'tabindex="0" style="-webkit-user-select: none; " ',
-                                      'aria-label="Decrypt Message" data-tooltip="Decrypt Message">',
-                                      '<img role="button" style="padding-top:4px;" ', 
-                                      'src="'+chrome.extension.getURL('sprite_black2.png')+'" alt="">',
-                                      '</a>' ].join('')
-                var verifyButton = [ '<a id="'+id+'" customFunction="verify" ',
-                                      'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
-                                      'style="position:relative;top:7px" role="button" ',
-                                      'tabindex="0" style="-webkit-user-select: none; " ',
-                                      'aria-label="Verify Message" data-tooltip="Verify Message">',
-                                      '<img role="button" style="padding-top:4px;" ', 
-                                      'src="'+chrome.extension.getURL('verify.png')+'" alt="">',
-                                      '</a>' ].join('')
+            //$('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div.customdec').remove();
+            //var items = $('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div:first-child');
 
-                $(items[loopindex]).before(decryptButton + verifyButton); 
+            $('#canvas_frame').contents().find('.nH .nH .nH .no .nH.nn .nH .nH .oLaOvc.aeJ').mouseover(function(){
+                    if(!$(this).find('tr.acZ td.gH.acX div[title="Reply"]').prev().hasClass('customdec')){
+                        var items = $(this).find('tr.acZ td.gH.acX div[title="Reply"]');
+                        $(items).each(function(loopindex){
+                            var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                            var decryptButton = [ '<a id="'+id+'" customFunction="decrypt" ',
+                                                  'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
+                                                  'style="position:relative;top:7px" role="button" ',
+                                                  'tabindex="0" style="-webkit-user-select: none; " ',
+                                                  'aria-label="Decrypt Message" data-tooltip="Decrypt Message">',
+                                                  '<img role="button" style="padding-top:4px;" ', 
+                                                  'src="'+chrome.extension.getURL('sprite_black2.png')+'" alt="">',
+                                                  '</a>' ].join('')
+                            var verifyButton = [ '<a id="'+id+'" customFunction="verify" ',
+                                                  'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
+                                                  'style="position:relative;top:7px" role="button" ',
+                                                  'tabindex="0" style="-webkit-user-select: none; " ',
+                                                  'aria-label="Verify Message" data-tooltip="Verify Message">',
+                                                  '<img role="button" style="padding-top:4px;" ', 
+                                                  'src="'+chrome.extension.getURL('verify.png')+'" alt="">',
+                                                  '</a>' ].join('')
+
+                            $(items[loopindex]).before(decryptButton + verifyButton); 
+                        });
+                    }
             });
 
+            //Old theme support for decryption and verification
+            $('#canvas_frame').contents().find('.Bs.nH.iY .cKWzSc.mD[role="button"]').each(function(index){
+                if($(this).parent().prev().length == 0){
+                    var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                    $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
+                        '<td><div class="mD"><span class="mG" id="'+id+'" customFunction="verify"> Verify Message</span></div></td>'].join(''));
+                }
+            }); 
+
+            //Old theme support for the compose email section
+            if(!$('#canvas_frame').contents().find('span.es.el:contains(Rich)').prev().hasClass('customdec')){
+                $('#canvas_frame').contents().find('span.es.el:contains(Rich)').each(function(){
+                    if(!$(this).prev().hasClass('customdec')){
+                        var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                        var newButton = $(this).before(
+                            ['<span class="es el customdec" ><a id="'+id+'" customFunction="encrypt">Encrypt Message</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                             '<span class="es el customdec" ><a id="'+id+'" customFunction="composer">Compose Message In Popup</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                             '<span class="es el customdec" ><a id="'+id+'" customFunction="sign">Sign Message</a> </span><span class="customdec" style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'].join(''));
+                        var signButton = $(this).prev();
+                        var composeButton = $(this).prev().prev();
+                        var encryptButton = $(this).prev().prev().prev();
+                        $('[customFunction="encrypt"]',encryptButton).click(function(){
+                            event.preventDefault();
+                            encryptionHandler(this);
+                        });
+                        $('[customFunction="composer"]',composeButton).click(function(){
+                            event.preventDefault();
+                            composerHandler(this);
+                        });
+                        $('[customFunction="sign"]',signButton).click(function(){
+                            event.preventDefault();
+                            clearSignHandler(this);
+                        });
+                    };
+                });
+            };
+        
+            //Inline reply
+            $('#canvas_frame').contents().find('.Bs.nH.iY .ip.adB').mouseover(function(){
+                if(!$(this).find('.es.el').prev().hasClass('customdec')){
+                    var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                    $(this).find('.es.el').before(
+                        ['<span class="es el customdec" ><a id="'+id+'" customFunction="encrypt">Encrypt Message</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                        '<span  class="es el customdec" ><a id="'+id+'"  customFunction="composer">Compose Message In Popup</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                        '<span  class="es el customdec" ><a id="'+id+'" customFunction="sign">Sign Message</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'
+                        ].join(''));
+                    $('[customFunction="encrypt"]',this).unbind('click');
+                    $('[customFunction="encrypt"]',this).click(function(){
+                        event.preventDefault();
+                        encryptionHandler(this);
+                    });
+                    $('[customFunction="composer"]',this).unbind('click');
+                    $('[customFunction="composer"]',this).click(function(){
+                        event.preventDefault();
+                        composerHandler(this);
+                    });
+                    $('[customFunction="sign"]',this).unbind('click');
+                    $('[customFunction="sign"]',this).click(function(){
+                        event.preventDefault();
+                        clearSignHandler(this);
+                    });
+
+                }; 
+            })
             $('#canvas_frame').contents().find('.nH .nH .nH .no .nH.nn .oLaOvc.aeJ').mouseover(function(){
                     if(!$(this).find('.es.el').prev().hasClass('customdec')){
                         var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                         $(this).find('.es.el').before(
-                            ['<span class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="encrypt"> Encrypt Message | </a> </span>',
-                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'"  customFunction="composer"> Compose Message In Popup | </a> </span>',
-                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="sign"> Sign Message |  </a>  </span>'
+                            ['<span class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="encrypt">Encrypt Message</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'"  customFunction="composer">Compose Message In Popup</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
+                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="sign">Sign Message</a>  </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'
                             ].join(''));
                         $('[customFunction="encrypt"]',this).unbind('click');
                         $('[customFunction="encrypt"]',this).click(function(){
@@ -246,7 +317,8 @@ $(document).ready(function(){
 
                     };
             });
-
+            
+            //Generic function handlers
             $('#canvas_frame').contents().find('[customFunction="decrypt"]').unbind('click');
             $('#canvas_frame').contents().find('[customFunction="decrypt"]').click(function(){
                 event.preventDefault();
@@ -275,7 +347,6 @@ $(document).ready(function(){
             $('#canvas_frame').contents().find('[customFunction="verify"]').click(function(){
                 event.preventDefault();
                 var messageElement = $(this).closest('.gs').find('.ii.gt').text();
-                console.log(messageElement);
                 chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
                     var returnMessage = response.message;
                     if(returnMessage.length > 1){
@@ -287,54 +358,5 @@ $(document).ready(function(){
                     }
                 });
             }); 
-            $('#canvas_frame').contents().find('[customFunction="verify"]').click(function(){
-                event.preventDefault();
-                var messageElement = $(this).closest('.gs').find('.ii.gt').text();
-                console.log(messageElement);
-                chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
-                    var returnMessage = response.message;
-                    if(returnMessage.length > 1){
-                        var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
-                        alert(returnMessage); 
-                        return;
-                    }else{
-                        alert('No public keys found for recipients');
-                    }
-                });
-            });
-        });
-
-        $('.Bs.nH.iY').live('mouseover',function(){
-            $('.es.el',this).each(function(index){
-                    if($(this).parent().prev().length == 0){
-                        if($(this).parent().next().length != 0 && $(this).parent().parent().children().length == 5){
-                                return;
-                        };
-                        var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                        $(this)
-                            .parent()
-                            .parent()
-                            .prepend(['<td class="fw" width="130px;">',
-                                        '<img class="fB" src="images/cleardot.gif" alt="">',
-                                        '<span id="'+id+'" customFunction="encrypt" class="es el">',
-                                        '<a>Encrypt Message</a></span></td>'].join('') +
-                                        ['<td class="fw" width="130px;">',
-                                        '<img class="fB" src="images/cleardot.gif" alt="">',
-                                        '<span id="'+id+'" customFunction="composer" class="es el">',
-                                        '<a>Compose Message</a></span></td>'].join('') +
-                                        ['<td class="fw" width="130px;">',
-                                        '<img class="fB" src="images/cleardot.gif" alt="">',
-                                        '<span id="'+id+'" customFunction="sign" class="es el">',
-                                        '<a>Sign Message</a></span></td>'].join(''));
-                    }
-                });
-
-            $('.cKWzSc.mD[role="button"]',this).each(function(index){
-                    if($(this).parent().prev().length == 0){
-                        var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                        $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
-                            '<td><div class="mD"><span class="mG" id="'+id+'" customFunction="verify"> Verify Message</span></div></td>'].join(''));
-                    }
-                });
         });
 });
