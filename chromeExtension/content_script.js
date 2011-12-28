@@ -1,4 +1,15 @@
 $(document).ready(function(){
+        (function(){
+            // remove layerX and layerY
+            var all = $.event.props,
+                len = all.length,
+                res = [];
+            while (len--) {
+              var el = all[len];
+              if (el != 'layerX' && el != 'layerY') res.push(el);
+            }
+            $.event.props = res;
+        }());
         chrome.extension.sendRequest({'messageType':'checkOptions'});
         //Listen for decrypt click
         var decryptMessageHandler = function(that){
@@ -142,9 +153,14 @@ $(document).ready(function(){
                 }
             });
             encryptionList = encryptionList.replace(/,$/,'').split(',');
+            encryptionList = encryptionList.filter(function(val) { return val.trim() !== '' })
+            //for(var i=0;i<encryptionList.length;i++){
+                //encryptionList[i] = encryptionList[i].trim();
+            //};
             var emailMessage = $(messageElement).val(); 
             chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(that).attr('id'),'maillist':encryptionList}}, function(response) {
                 var returnMessage = response.message;
+                console.log(returnMessage);
                 if(returnMessage.length > 1){
                     var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
@@ -179,7 +195,7 @@ $(document).ready(function(){
 
         
 
-        $('[customFunction="verify"]').live('click',function(){
+        $('#canvas_frame').contents().delegate('[customFunction="verify"]','click',function(){
                 event.preventDefault();
                 var messageElement = $(this).closest('.gs').find('.ii.gt').text();
                 chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
@@ -193,79 +209,35 @@ $(document).ready(function(){
                     }
                 });
         }); 
-  
-        //Setup monitors for the mail detail section 
-        $('*').live('mouseover',function(){
 
-            //$('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div.customdec').remove();
-            //var items = $('#canvas_frame').contents().find('.nH .h7 .adn.ads tr.acZ td.gH.acX div:first-child');
+        $('#canvas_frame').contents().delegate('.nH','mouseover',function(){
 
-            $('#canvas_frame').contents().find('.nH .nH .nH .no .nH.nn .nH .nH .oLaOvc.aeJ').mouseover(function(){
-                    if(!$(this).find('tr.acZ td.gH.acX div[title="Reply"]').prev().hasClass('customdec')){
-                        var items = $(this).find('tr.acZ td.gH.acX div[title="Reply"]');
-                        $(items).each(function(loopindex){
+            //Load the decrypt and verify buttons but only for the old theme
+            $('.Bs.nH.iY .cKWzSc.mD[role="button"]',this).each(function(index){
+                if($(this).find('span:contains(Reply)')){
+                    if($('#canvas_frame').contents().find('.nH.oy8Mbf span:contains(Switch to the new look)').length !== 0){
+                        if($(this).parent().prev().length == 0){
                             var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                            var decryptButton = [ '<a id="'+id+'" customFunction="decrypt" ',
-                                                  'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
-                                                  'style="position:relative;top:7px" role="button" ',
-                                                  'tabindex="0" style="-webkit-user-select: none; " ',
-                                                  'aria-label="Decrypt Message" data-tooltip="Decrypt Message">',
-                                                  '<img role="button" style="padding-top:4px;" ', 
-                                                  'src="'+chrome.extension.getURL('sprite_black2.png')+'" alt="">',
-                                                  '</a>' ].join('')
-                            var verifyButton = [ '<a id="'+id+'" customFunction="verify" ',
-                                                  'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
-                                                  'style="position:relative;top:7px" role="button" ',
-                                                  'tabindex="0" style="-webkit-user-select: none; " ',
-                                                  'aria-label="Verify Message" data-tooltip="Verify Message">',
-                                                  '<img role="button" style="padding-top:4px;" ', 
-                                                  'src="'+chrome.extension.getURL('verify.png')+'" alt="">',
-                                                  '</a>' ].join('')
-
-                            $(items[loopindex]).before(decryptButton + verifyButton); 
-                        });
-                    }
+                            $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
+                                '<td><div class="mD"><span class="mG" id="'+id+'" customFunction="verify"> Verify Message</span></div></td>'].join(''));
+                        };
+                    };
+                };
+            }); 
+           
+            //Old theme support for the compose email section
+            $('span.es.el:contains(Rich)',this).each(function(){
+                if(!$(this).prev().hasClass('customdec')){
+                    var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                    var newButton = $(this).before(
+                        ['<span class="es el customdec" ><a id="'+id+'" customFunction="encrypt">Encrypt Message</a></span><span style="position:relative;top:-5px;">&nbsp;&nbsp;</span>',
+                         '<span class="es el customdec" ><a id="'+id+'" customFunction="composer">Compose Message In Popup</a></span><span style="position:relative;top:-5px;">&nbsp;&nbsp;</span>',
+                         '<span class="es el customdec" ><a id="'+id+'" customFunction="sign">Sign Message</a> </span><span class="customdec" style="position:relative;top:-5px;">&nbsp;&nbsp;</span>'].join(''));
+                };
             });
 
-            //Old theme support for decryption and verification
-            $('#canvas_frame').contents().find('.Bs.nH.iY .cKWzSc.mD[role="button"]').each(function(index){
-                if($(this).parent().prev().length == 0){
-                    var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                    $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" id="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
-                        '<td><div class="mD"><span class="mG" id="'+id+'" customFunction="verify"> Verify Message</span></div></td>'].join(''));
-                }
-            }); 
-
-            //Old theme support for the compose email section
-            if(!$('#canvas_frame').contents().find('span.es.el:contains(Rich)').prev().hasClass('customdec')){
-                $('#canvas_frame').contents().find('span.es.el:contains(Rich)').each(function(){
-                    if(!$(this).prev().hasClass('customdec')){
-                        var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                        var newButton = $(this).before(
-                            ['<span class="es el customdec" ><a id="'+id+'" customFunction="encrypt">Encrypt Message</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
-                             '<span class="es el customdec" ><a id="'+id+'" customFunction="composer">Compose Message In Popup</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
-                             '<span class="es el customdec" ><a id="'+id+'" customFunction="sign">Sign Message</a> </span><span class="customdec" style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'].join(''));
-                        var signButton = $(this).prev();
-                        var composeButton = $(this).prev().prev();
-                        var encryptButton = $(this).prev().prev().prev();
-                        $('[customFunction="encrypt"]',encryptButton).click(function(){
-                            event.preventDefault();
-                            encryptionHandler(this);
-                        });
-                        $('[customFunction="composer"]',composeButton).click(function(){
-                            event.preventDefault();
-                            composerHandler(this);
-                        });
-                        $('[customFunction="sign"]',signButton).click(function(){
-                            event.preventDefault();
-                            clearSignHandler(this);
-                        });
-                    };
-                });
-            };
-        
             //Inline reply
-            $('#canvas_frame').contents().find('.Bs.nH.iY .ip.adB').mouseover(function(){
+            $('.Bs.nH.iY .ip.adB',this).mouseover(function(){
                 if(!$(this).find('.es.el').prev().hasClass('customdec')){
                     var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                     $(this).find('.es.el').before(
@@ -273,54 +245,38 @@ $(document).ready(function(){
                         '<span  class="es el customdec" ><a id="'+id+'"  customFunction="composer">Compose Message In Popup</a></span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
                         '<span  class="es el customdec" ><a id="'+id+'" customFunction="sign">Sign Message</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'
                         ].join(''));
-                    $('[customFunction="encrypt"]',this).unbind('click');
-                    $('[customFunction="encrypt"]',this).click(function(){
-                        event.preventDefault();
-                        encryptionHandler(this);
-                    });
-                    $('[customFunction="composer"]',this).unbind('click');
-                    $('[customFunction="composer"]',this).click(function(){
-                        event.preventDefault();
-                        composerHandler(this);
-                    });
-                    $('[customFunction="sign"]',this).unbind('click');
-                    $('[customFunction="sign"]',this).click(function(){
-                        event.preventDefault();
-                        clearSignHandler(this);
-                    });
-
                 }; 
-            })
-            $('#canvas_frame').contents().find('.nH .nH .nH .no .nH.nn .oLaOvc.aeJ').mouseover(function(){
-                    if(!$(this).find('.es.el').prev().hasClass('customdec')){
-                        var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
-                        $(this).find('.es.el').before(
-                            ['<span class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="encrypt">Encrypt Message</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
-                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'"  customFunction="composer">Compose Message In Popup</a> </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>',
-                            '<span  class="el customdec" role="link" tabindex="2"><a id="'+id+'" customFunction="sign">Sign Message</a>  </span><span style="position:relative;top:-5px;">&nbsp;|&nbsp;</span>'
-                            ].join(''));
-                        $('[customFunction="encrypt"]',this).unbind('click');
-                        $('[customFunction="encrypt"]',this).click(function(){
-                            event.preventDefault();
-                            encryptionHandler(this);
-                        });
-                        $('[customFunction="composer"]',this).unbind('click');
-                        $('[customFunction="composer"]',this).click(function(){
-                            event.preventDefault();
-                            composerHandler(this);
-                        });
-                        $('[customFunction="sign"]',this).unbind('click');
-                        $('[customFunction="sign"]',this).click(function(){
-                            event.preventDefault();
-                            clearSignHandler(this);
-                        });
-
-                    };
             });
-            
+
+            //Load up the decrypt and verify buttons on currently visible emails
+            var items = $(this).find('tr.acZ td.gH.acX div[title="Reply"]');
+            $(items).each(function(loopindex){
+                if(!$(this).prev().hasClass('customdec')){
+                    var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
+                    var decryptButton = [ '<a id="'+id+'" customFunction="decrypt" ',
+                                          'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
+                                          'style="position:relative;top:7px" role="button" ',
+                                          'tabindex="0" style="-webkit-user-select: none; " ',
+                                          'aria-label="Decrypt Message" data-tooltip="Decrypt Message">',
+                                          '<img role="button" style="padding-top:4px;" ', 
+                                          'src="'+chrome.extension.getURL('sprite_black2.png')+'" alt="">',
+                                          '</a>' ].join('')
+                    var verifyButton = [ '<a id="'+id+'" customFunction="verify" ',
+                                          'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
+                                          'style="position:relative;top:7px" role="button" ',
+                                          'tabindex="0" style="-webkit-user-select: none; " ',
+                                          'aria-label="Verify Message" data-tooltip="Verify Message">',
+                                          '<img role="button" style="padding-top:4px;" ', 
+                                          'src="'+chrome.extension.getURL('verify.png')+'" alt="">',
+                                          '</a>' ].join('')
+
+                    $(items[loopindex]).before(decryptButton + verifyButton);
+                };
+            });
+
             //Generic function handlers
-            $('#canvas_frame').contents().find('[customFunction="decrypt"]').unbind('click');
-            $('#canvas_frame').contents().find('[customFunction="decrypt"]').click(function(){
+            $('[customFunction="decrypt"]',this).unbind('click');
+            $('[customFunction="decrypt"]',this).click(function(){
                 event.preventDefault();
                 var tempDialog = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase" style="font-size: 0.7em;">Passphrase : <input id="passpharsedlg" type="password" width="100%"></input></div>');
                 $(tempDialog).keyup(function(e) {
@@ -343,8 +299,25 @@ $(document).ready(function(){
                 });
             });
 
-            $('#canvas_frame').contents().find('[customFunction="verify"]').unbind('click');
-            $('#canvas_frame').contents().find('[customFunction="verify"]').click(function(){
+            $('[customFunction="encrypt"]',this).unbind('click');
+            $('[customFunction="encrypt"]',this).click(function(){
+                event.preventDefault();
+                encryptionHandler(this);
+            });
+
+            $('[customFunction="composer"]',this).unbind('click');
+            $('[customFunction="composer"]',this).click(function(){
+                event.preventDefault();
+                composerHandler(this);
+            });
+            $('[customFunction="sign"]',this).unbind('click');
+            $('[customFunction="sign"]',this).click(function(){
+                event.preventDefault();
+                clearSignHandler(this);
+            });
+
+            $('[customFunction="verify"]',this).unbind('click');
+            $('[customFunction="verify"]',this).click(function(){
                 event.preventDefault();
                 var messageElement = $(this).closest('.gs').find('.ii.gt').text();
                 chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
@@ -357,6 +330,6 @@ $(document).ready(function(){
                         alert('No public keys found for recipients');
                     }
                 });
-            }); 
+            });
         });
 });
