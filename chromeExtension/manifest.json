@@ -1,6 +1,6 @@
 {
   "name": "Cr-gpg",
-  "version": "0.7.6",
+  "version": "0.7.8",
   "description": "Chrome-gpg. Quick hack that bridges gmail to your locally installed gpg.",
   "icons":{"128":"icon.png"},
   "offline_enabled" : true,
@@ -20,10 +20,11 @@
      {"path": "gmailGPG32_Ubuntu.so"}
   ],
   "content_scripts": [
-      { "matches": ["http://mail.google.com/*", "https://mail.google.com/*"], 
-        "css": ["jquery-ui-1.8.11.thinkst.css","custom.css"],
-        "js": ["jquery-1.6.1.min.js","jquery-ui-1.8.13.custom.js","content_script.js","popup.js","jquery.client.js"]
-        }
+      { 
+          "matches": ["http://mail.google.com/*", "https://mail.google.com/*"], 
+          "css": ["jquery-ui-1.8.11.thinkst.css","custom.css"],
+          "js": ["jquery-1.7.1.min.js","jquery-ui-1.8.13.custom.js","content_script.js","popup.js","jquery.client.js"]
+      }
   ],
   "permissions": [
       "tabs",
