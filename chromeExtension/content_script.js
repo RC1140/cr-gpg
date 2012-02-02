@@ -4,8 +4,14 @@ $(document).ready(function(){
         var decryptMessageHandler = function(that){
             var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('decid')).closest('.gs').find('.ii.gt');
             var emailMessage = messageElement.text(); 
+            //If this currently exists in the message it means we have a embeded 
+            //sig , the - -- indicates this.
+            var multiDec = false;
+            if(emailMessage.indexOf('- -----BEGIN PGP MESSAGE') !== -1){
+                multiDec = true; 
+            }
             var pp = $('input#passpharsedlg[type="password"]',that).val();
-            chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':pp,'message':emailMessage,'domel':$(that).attr('decid')}}, function(response) {
+            chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':pp,'message':emailMessage,'domel':$(that).attr('decid'),'multidec':multiDec}}, function(response) {
                 if(response.message.indexOf('decryption failed') == -1){
                     if(response.message.indexOf('no valid OpenPGP data found') == -1){
                         var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
@@ -238,6 +244,57 @@ $(document).ready(function(){
             $('[customFunction="verify"]',searchLocation).click(function(){
                 event.preventDefault();
                 var messageElement = $(this).closest('.gs').find('.ii.gt').text();
+                //Code To handle importing and splitting of external sigs.
+
+                //var otherText = $(this).closest('.gs').find('.hq.gt a');
+                //var pairs = $(otherText[0]).attr('href').split('&');
+                //var nvpair = {};
+                //$.each(pairs, function(i, v){
+                  //var pair = v.split('=');
+                  //nvpair[pair[0]] = pair[1];
+                //});
+                //var superURL = ['https://mail.google.com/mail/u/0/?ui=2&ik=',
+                    //nvpair.ik,'&view=om&th=',window.location.hash.split('/')[1]].join('');
+                //$.get(superURL,function(dat){
+                    ////Find the bound seperator and store it and remove the search text
+                    //var separator = dat.match(/boundary=".*"/);
+                    //separator = separator[0].substring(10,separator[0].length -1)
+                    ////Split the message with the sperator we found and drop the first 2
+                    ////and last element , these are just artifacts of the split mostly.
+                    //var parts = dat.split(separator);
+                    //parts.splice(0,2);
+                    //parts.splice(parts.length-1,1);
+                    ////Remove any trailing --
+                    //for(var i =0;i<parts.length;i++){
+                        //parts[i] = parts[i].trim().replace(/--$/g,'').trim();
+                    //};
+                    ////Store the parts in their own vars so that we can work on 
+                    ////them later
+                    //var origMessage = parts[0].split('\n');
+                    //var sigDetail = parts[1].split('\n');
+                    ////Find the first space once we do store the index 
+                    ////and the splice the array to remove non encoded data which 
+                    ////is the header data.
+                    //var cleanMessage = function(message){
+                        //var i;
+                        //for(i = 0;i < message.length;i++){
+                            //if(message[i].length == 0){break;}
+                        //};
+                        //message.splice(0,i+1);
+                    //};
+                    //cleanMessage(sigDetail); 
+                    //cleanMessage(origMessage); 
+                    //origMessage = origMessage.join('\n').trim();
+                    ////cleanMessage(sigDetail);
+                    ////sigDetail.splice(0,5); //Remove First item;
+                    //////cleanMessage(sigDetail); 
+                    //////sigDetail = $.grep(sigDetail,function(n){
+                        //////return(n); 
+                    //////});
+                    ////console.log(origMessage);
+                    ////console.log(sigDetail);
+                //});
+
                 chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
                     var returnMessage = response.message;
                     if(returnMessage.length > 1){

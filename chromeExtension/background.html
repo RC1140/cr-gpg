@@ -37,7 +37,13 @@
             }else if(request.messageType == 'verify'){
                 sendResponse({message: plugin0().verifyMessage(request.verify.message),domid:request.verify.domel});
             }else if(request.messageType == 'decrypt'){
-                sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
+                if(request.decrypt.multidec){
+                    var response = plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message);
+                    response = plugin0().decrypt(request.decrypt.passphrase,response);
+                    sendResponse({message: response,domid:request.decrypt.domel});
+                }else{
+                    sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
+                };
             }else if(request.messageType == 'optionLoad'){
               chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')});
               sendResponse('options opened');
