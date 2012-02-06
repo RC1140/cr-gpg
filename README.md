@@ -33,26 +33,16 @@ Clicking the link will prompt you for your passphrase with
 which to decrypt the message, a error will be show if no
 valid gpg data can be found or if the passphrase is incorrect.
 
-## Folders : 
+## Building the Extension :
 
-chromeExtension : This is the chrome extension , you need to pack
-it wil chrome to distribute it or you can load it as is.
+Follow the intrsuction @ https://github.com/RC1140/cr-gpg/wiki/Compiling-extension-manually-(Linux) 
+to build a custom version of the plugin , this is required for linux where various
+architectures require specific builds.
 
-gmailGPG : This is the gpg plugin and is what interacts with the
-the gpg bin installed on your machine. To compile this you need to
-grab the FireBreath project from [here](http://www.firebreath.org/display/documentation/Download).
-Place this folder in the projects folders and run the prep command
-for your system.
+## Debugging Extensions :
 
-## Other considerations :
+If you encounter a error or are unable to get the extension to run. Follow
+the intstructions @ https://github.com/RC1140/cr-gpg/wiki/Debugging which
+will allow you to find and fix any errors. This also assists when submitting
+bug requests as it allows the developers to pin point a issue.
 
-Note : If at any time a decrypt or encrypt link is not visible
-please mouse over the actual composing form or your message thread
-(when reading old mails).
-
-Note : The default paths are requirements in the extension are
-       tempPath = /tmp/
-       gpgPath = /opt/local/bin/
-
-       If your paths are different you can change them from the
-       options menu for the chrome extension.
