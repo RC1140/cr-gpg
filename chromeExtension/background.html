@@ -36,6 +36,8 @@
                 sendResponse({message: plugin0().clearSignMessage(request.sign.message,request.sign.passphrase),domid:request.sign.domel});
             }else if(request.messageType == 'verify'){
                 sendResponse({message: plugin0().verifyMessage(request.verify.message),domid:request.verify.domel});
+            }else if(request.messageType == 'verifyDetached'){
+            sendResponse({message: plugin0().verifyMessageDetached(request.verify.message,request.verify.sig),domid:request.verify.domel});
             }else if(request.messageType == 'decrypt'){
                 if(request.decrypt.multidec){
                     var response = plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message);

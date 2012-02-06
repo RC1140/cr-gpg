@@ -9,6 +9,8 @@
 #include <fstream>
 #include <string> 
 #include <algorithm>
+#include <sstream>
+#include "b64.c"
 
 using namespace std;
 
@@ -51,6 +53,7 @@ gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr& ho
     registerMethod("listPrivateKeys",     make_method(this, &gmailGPGAPI::listPrivateKeys));
     registerMethod("clearSignMessage",     make_method(this, &gmailGPGAPI::clearSignMessage));
     registerMethod("verifyMessage",     make_method(this, &gmailGPGAPI::verifyMessage));
+    registerMethod("verifyMessageDetached",     make_method(this, &gmailGPGAPI::verifyMessageWithDetachedFile));
 
     registerMethod("testOptions",     make_method(this, &gmailGPGAPI::testOptions));
 
@@ -72,7 +75,7 @@ gmailGPGAPI::~gmailGPGAPI()
 //and returns a string with this details to the caller.
 //"errorMessage.txt"
 std::string gmailGPGAPI::readAndRemoveErrorFile(const std::string fileName)
-{
+{        
     string errorFileLocation = m_tempPath + fileName;
     string returnData = "";
     string line;
@@ -104,6 +107,7 @@ std::string gmailGPGAPI::readTempFile(const std::string fileName)
     myfile.close();
     return returnData;
 }
+
 gmailGPGPtr gmailGPGAPI::getPlugin()
 {
     gmailGPGPtr plugin(m_plugin.lock());
@@ -135,7 +139,7 @@ void gmailGPGAPI::set_appPath(const std::string& val)
 
 std::string gmailGPGAPI::get_version()
 {
-    return "0.6.1";
+    return "0.6.2";
 }
 
 void gmailGPGAPI::testEvent(const FB::variant& var)
@@ -160,7 +164,6 @@ string sendMessageToCommand(string command,string message){
     //return command;
     FILE *fp;
     int status;
-    char path[200];
     string returnData ="";
 
     fp = popen(command.c_str(), "w");
@@ -175,6 +178,7 @@ string sendMessageToCommand(string command,string message){
         return returnData;
     }
 }
+
 //Encrypts a message with the list of recipients provided
 FB::variant gmailGPGAPI::encryptMessage(const FB::variant& recipients,const FB::variant& msg)
 {
@@ -326,6 +330,56 @@ FB::variant gmailGPGAPI::verifyMessage(const FB::variant& message)
 }
 
 //Verifies wether a message is ok and has not been tampered with
+FB::variant gmailGPGAPI::verifyMessageWithDetachedFile(const FB::variant& message,const FB::variant& sig)
+{
+    string errorFileLocation = m_tempPath + "errorMessage.txt";
+    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
+    string tempSigLocation = m_tempPath + "tmpMessage.gpg.sig";
+    string tempSigHolder = m_tempPath + "tmpMessage.gpg.enc.sig";
+    string gpgFileLocation = m_appPath + "gpg ";
+    
+    ofstream messageToSign(tempFileLocation.c_str());
+    if(messageToSign.is_open())
+    {
+        messageToSign << message.convert_cast<string>().c_str();
+        messageToSign.close();
+    }
+    
+    ofstream tempEncDataHolder(tempSigHolder.c_str());
+    if(tempEncDataHolder.is_open())
+    {
+        tempEncDataHolder << sig.convert_cast<string>().c_str();
+        tempEncDataHolder.close();
+    }
+
+    b64(100,(char *)tempSigHolder.c_str(), (char *)tempSigLocation.c_str(), 72 );
+    
+    ofstream encData(tempFileLocation.c_str(),fstream::out | fstream::app);
+    if(encData.is_open())
+    {
+        encData << endl;
+        encData.close();
+    }
+    
+    string cmd = "";
+    cmd.append(gpgFileLocation);
+    cmd.append("--no-tty --verify ");
+    cmd.append(tempSigLocation);
+    cmd.append(" 2>");
+    cmd.append(errorFileLocation);
+    
+    exec(cmd);
+    
+    remove(tempFileLocation.c_str());
+    remove(tempSigLocation.c_str());
+    remove(tempSigHolder.c_str());
+
+    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
+    
+    return errorMessage;
+}
+
+
 FB::variant gmailGPGAPI::clearSignMessage(const FB::variant& message,const FB::variant& password)
 {
     try{
@@ -389,7 +443,7 @@ FB::variant gmailGPGAPI::listKeys()
  
     exec(cmd);
     string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("errorMessage.txt");
+    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
 
     if(!errorMessage.empty())
     {
