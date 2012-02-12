@@ -1,8 +1,3 @@
-/**********************************************************\
-
-  Auto-generated gmailGPGAPI.h
-
-\**********************************************************/
 
 #include <string>
 #include <sstream>
@@ -40,6 +35,7 @@ public:
     FB::variant clearSignMessage(const FB::variant& message,const FB::variant& password);
     FB::variant verifyMessage(const FB::variant& message);
     FB::variant testOptions();
+    FB::variant verifyMessageWithDetachedFile(const FB::variant& message,const FB::variant& sig);
     
     FB_JSAPI_EVENT(fired, 3, (const FB::variant&, bool, int));
     FB_JSAPI_EVENT(echo, 2, (const FB::variant&, const int));
