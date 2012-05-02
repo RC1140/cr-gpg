@@ -247,7 +247,7 @@ $(document).ready(function(){
                 //Code To handle importing and splitting of external sigs.
 
                 var otherText = $(this).closest('.gs').find('.hq.gt a');
-                if(otherText){
+                if(otherText.length>0){
                     var pairs = $(otherText[0]).attr('href').split('&');
                     var nvpair = {};
                     $.each(pairs, function(i, v){
@@ -357,7 +357,7 @@ $(document).ready(function(){
         
         //Old theme support for the compose email section
         var loadComposeButtons = function(searchLocation){
-            $('span.es.el:contains(Rich)',searchLocation).each(function(){
+            $('span.es.el:not(.customdec)',searchLocation).each(function(){
                 if(!$(this).prev().hasClass('customdec')){
                     var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                     var newButton = $(this).before(
