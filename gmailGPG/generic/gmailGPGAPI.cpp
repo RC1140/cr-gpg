@@ -1,3 +1,11 @@
+/*
+ * Note I have used various bit of code from 
+ * https://github.com/gpgauth/gpgauth-npapi/blob/master/gpgAuthPlugin/
+ *
+ * The project is alot more mature than mine and
+ * solved alot of the issues that I came across.
+ *
+ * */
 #include "JSObject.h"
 #include "variant_list.h"
 #include "DOM/Document.h"
@@ -10,40 +18,12 @@
 #include <string> 
 #include <algorithm>
 #include <sstream>
+#include <gpgme.h>
+#include "t-support.h"
 #include "b64.c"
 
 using namespace std;
 
-class Clean_Up_File {
-    char* filename_;
-public:
-    Clean_Up_File(string basePath, string fileData){ 
-        basePath.append("tmpfileXXXXXX");
-        char *tmpname = strdup(basePath.c_str());
-        filename_ = tmpname;
-        mkstemp(tmpname);
-        ofstream tmpWriter(tmpname);
-        tmpWriter << fileData;
-        tmpWriter.close();
-    }
-    ~Clean_Up_File(){
-        remove(filename_); 
-    }
-    char* getFileName(){
-        return this->filename_; 
-    }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// @fn gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr host)
-///
-/// @brief  Constructor for your JSAPI object.  You should register your methods, properties, and events
-///         that should be accessible to Javascript from here.
-///
-/// @see FB::JSAPIAuto::registerMethod
-/// @see FB::JSAPIAuto::registerProperty
-/// @see FB::JSAPIAuto::registerEvent
-///////////////////////////////////////////////////////////////////////////////
 gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr& host) : m_plugin(plugin), m_host(host)
 {
     registerMethod("encrypt",      make_method(this, &gmailGPGAPI::encryptMessage));
@@ -54,8 +34,6 @@ gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr& ho
     registerMethod("clearSignMessage",     make_method(this, &gmailGPGAPI::clearSignMessage));
     registerMethod("verifyMessage",     make_method(this, &gmailGPGAPI::verifyMessage));
     registerMethod("verifyMessageDetached",     make_method(this, &gmailGPGAPI::verifyMessageWithDetachedFile));
-
-    registerMethod("testOptions",     make_method(this, &gmailGPGAPI::testOptions));
 
     // Read-only property
     registerProperty("version",
@@ -68,6 +46,13 @@ gmailGPGAPI::gmailGPGAPI(const gmailGPGPtr& plugin, const FB::BrowserHostPtr& ho
 
 gmailGPGAPI::~gmailGPGAPI()
 {
+}
+
+inline std::string i_to_str(const int &number)
+{
+    std::ostringstream oss;
+    oss << number;
+    return oss.str();
 }
 
 //Error handler file , this reads any messages that
@@ -139,12 +124,7 @@ void gmailGPGAPI::set_appPath(const std::string& val)
 
 std::string gmailGPGAPI::get_version()
 {
-    return "0.6.2";
-}
-
-void gmailGPGAPI::testEvent(const FB::variant& var)
-{
-    fire_fired(var, true, 1);
+    return "0.7.7-beta";
 }
 
 string exec(string cmd) {
@@ -160,351 +140,358 @@ string exec(string cmd) {
     return "";
 }
 
-string sendMessageToCommand(string command,string message){
-    //return command;
-    FILE *fp;
-    int status;
-    string returnData ="";
-
-    fp = popen(command.c_str(), "w");
-    if (fp == NULL)
-        return "Unable to open Stream";
-
-    fputs(message.c_str(),fp);
-    status = pclose(fp);
-    if (status == -1) {
-        return "stream close error";
-    } else {
-        return returnData;
-    }
-}
-
 //Encrypts a message with the list of recipients provided
 FB::variant gmailGPGAPI::encryptMessage(const FB::variant& recipients,const FB::variant& msg)
 {
-    try{
-
-        string tempFileLocation = m_tempPath + "errorMessage.txt";
-        string tempOutputLocation = m_tempPath + "outputMessage.txt";
-        string gpgFileLocation = m_appPath + "gpg ";
-
-        vector<string> peopleToSendTo = recipients.convert_cast<vector<string> >();
-        string cmd = "";
-        cmd.append(gpgFileLocation);
-        cmd.append("-e --armor");
-        cmd.append(" --trust-model=always");
-        for (unsigned int i = 0; i < peopleToSendTo.size(); i++) {
-            cmd.append(" -r");
-            cmd.append(peopleToSendTo.at(i));
-        }
-        cmd.append(" --output ");
-        cmd.append(tempOutputLocation);
-        cmd.append(" 2>");
-        cmd.append(tempFileLocation);
-
-        sendMessageToCommand(cmd,msg.convert_cast<string>());
-        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-        string returnData = readAndRemoveErrorFile("outputMessage.txt");
-
-        if(!errorMessage.empty() && returnData.empty())
-        {
-            return errorMessage;
-        }
-        return returnData;
-    }catch(exception& e){
-        return "A exception was caught something went very wrong"; 
-    }
-}
-
-string getMessageFromCommand(string command){
-    FILE *fp;
-    int status;
-    char path[PATH_MAX];
-    fp = popen(command.c_str(), "r");
-    if (fp == NULL)
-        return "";
+    vector<string> peopleToSendTo = recipients.convert_cast<vector<string> >();
     string returnData = "";
-    while (fgets(path, PATH_MAX, fp) != NULL)
-        returnData.append(path);
 
-    status = pclose(fp);
-    return returnData;
+    gpgme_ctx_t ctx;
+    gpgme_error_t err;
+    gpgme_data_t in, out;
+    //peopleToSendTo.size()
+    gpgme_key_t key[peopleToSendTo.size()+1];// = {NULL,NULL,NULL};
+
+    init_gpgme (GPGME_PROTOCOL_OpenPGP);
+
+    err = gpgme_new (&ctx);
+    gpgme_set_armor (ctx, 1);
+
+    for(unsigned int i=0;i<peopleToSendTo.size();i++)
+    {
+        err = gpgme_get_key (ctx, peopleToSendTo.at(i).c_str(), &key[i], 0);
+    }
+    key[peopleToSendTo.size()] = NULL;
+    gpgme_encrypt_result_t result;
+
+    err = gpgme_data_new_from_mem (&in, msg.convert_cast<string>().c_str(), msg.convert_cast<string>().length()+1, 1);
+    //err = gpgme_data_new_from_mem (&in, "Hallo Leute\n", 12, 0);
+    //fail_if_err (err);
+
+    err = gpgme_data_new (&out);
+    //fail_if_err (err);
+
+    err = gpgme_op_encrypt (ctx, key, GPGME_ENCRYPT_ALWAYS_TRUST, in, out);
+    //fail_if_err (err);
+    result = gpgme_op_encrypt_result (ctx);
+    //if (result->invalid_recipients)
+    //{
+     // fprintf (stderr, "Invalid recipient encountered: %s\n",
+      //     result->invalid_recipients->fpr);
+      //exit (1);
+    //}
+    
+    size_t out_size = 0;
+    char* out_buf = gpgme_data_release_and_get_mem(out, &out_size);
+    std::string returnMessage = std::string(out_buf);
+    out = NULL;
+
+    //returnData = print_data (out);
+    for(int i=0;i<peopleToSendTo.size();i++)
+    {
+        gpgme_key_unref (key[i]);
+    }
+
+    gpgme_data_release (in);
+    gpgme_data_release (out);
+    gpgme_release (ctx);
+    return returnMessage;
 }
+
 //Decrypts a message using the password provided and the message passed in , this does require
 //that you have the private key installed locally.
-FB::variant gmailGPGAPI::decryptMessage(const FB::variant& password,const FB::variant& msg)
+FB::variant gmailGPGAPI::decryptMessage(const FB::variant& msg)
 {
-    try
+    gpgme_ctx_t ctx;
+    gpgme_error_t err;
+    gpgme_data_t in, out;
+    gpgme_decrypt_result_t result;
+    char *agent_info;
+
+    init_gpgme (GPGME_PROTOCOL_OpenPGP);
+
+    err = gpgme_new (&ctx);
+    string returnData = gpgme_strerror(err);
+    
+    //fail_if_err (err);
+
+    agent_info = getenv("GPG_AGENT_INFO");
+    if (!(agent_info && strchr (agent_info, ':')))
+        gpgme_set_passphrase_cb (ctx, NULL, NULL);
+
+    err = gpgme_data_new_from_mem(&in, msg.convert_cast<string>().c_str(),msg.convert_cast<string>().length(),1);
+    returnData = gpgme_strerror(err);
+    //fail_if_err (err);
+
+    err = gpgme_data_new (&out);
+    returnData = gpgme_strerror(err);
+    //fail_if_err (err);
+
+    err = gpgme_op_decrypt (ctx, in, out);
+
+    size_t out_size = 0;
+    char* out_buf = gpgme_data_release_and_get_mem (out, &out_size);
+    std::string returnMessage = std::string(out_buf);
+    out = NULL;
+
+    returnData = gpgme_strerror(err);
+    result = gpgme_op_decrypt_result (ctx);
+    /*
+    if (result->unsupported_algorithm)
     {
-        Clean_Up_File tempMessageHolder(m_tempPath,msg.convert_cast<string>().c_str());
-        string tempFileLocation = tempMessageHolder.getFileName();
-        string errorFileLocation = m_tempPath + "errorMessage.txt";
-        string gpgFileLocation = m_appPath + "gpg ";
-
-        string cmd = "";
-        cmd.append("echo \"");
-        cmd.append(password.convert_cast<string>());
-        cmd.append("\" |");
-        cmd.append(" ");
-        cmd.append(gpgFileLocation);
-        cmd.append(" --no-tty --passphrase-fd 0");
-        cmd.append(" -d ");
-        cmd.append(tempFileLocation);
-        cmd.append(" 2>");
-        cmd.append(errorFileLocation);
-
-        string returnData = getMessageFromCommand(cmd);
-        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-
-        remove(tempFileLocation.c_str());    
-        if(!errorMessage.empty() && returnData.empty())
-        {
-            return errorMessage;
-        }
-
-        return returnData;
-    }catch(exception& e){
-        return "A error occured";
+        fprintf (stderr, "%s:%i: unsupported algorithm: %s\n",
+                __FILE__, __LINE__, result->unsupported_algorithm);
+        exit (1);
     }
+    */
+    //returnData = print_data(out);
+    //returnData = gpgme_data_release_and_get_mem (out, &out_size);
+    gpgme_data_release (in);
+    gpgme_data_release (out);
+    gpgme_release (ctx);
+    return returnMessage;
 }
 
 //Imports a users public key
 FB::variant gmailGPGAPI::importKey(const FB::variant& pubKey)
 {
-    string errorFileLocation = m_tempPath + "errorMessage.txt";
-    string tempOutputLocation = m_tempPath + "outputMessage.txt";
-    string gpgFileLocation = m_appPath + "gpg ";
-    
-    string cmd = "";
-    string tmpFileName = "/tmp/tmpMessage.gpg";
-    
-    cmd.append("echo \"");
-    cmd.append(pubKey.convert_cast<string>());
-    cmd.append("\" | ");
-    cmd.append(gpgFileLocation);
-    cmd.append(" --import");
-    cmd.append(" 1>");
-    cmd.append(tempOutputLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
+    gpgme_ctx_t ctx;
+    gpgme_error_t err;
+    gpgme_data_t in;
+    gpgme_import_result_t result;
 
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("errorMessage.txt");
+    init_gpgme (GPGME_PROTOCOL_OpenPGP);
 
-    if(!errorMessage.empty())
-    {
-        return errorMessage;
-    }
-    return returnData;
+    err = gpgme_new (&ctx);
+    //fail_if_err (err);
+
+    err = gpgme_data_new_from_mem(&in, pubKey.convert_cast<string>().c_str(),pubKey.convert_cast<string>().length(),1);
+    //fail_if_err (err);
+
+    err = gpgme_op_import (ctx, in);
+    //fail_if_err (err);
+    
+    result = gpgme_op_import_result (ctx);
+
+    gpgme_data_release (in);
+    gpgme_release (ctx);
+    return "OK";
 }
 
 
 //Verifies wether a message is ok and has not been tampered with
 FB::variant gmailGPGAPI::verifyMessage(const FB::variant& message)
 {
-    string errorFileLocation = m_tempPath + "errorMessage.txt";
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath + "gpg ";
-    
-    string cmd = "";
-    cmd.append("echo \"");
-    cmd.append(message.convert_cast<string>());
-    cmd.append("\" | ");
-    cmd.append(gpgFileLocation);
-    cmd.append(" --no-tty --verify");
-    cmd.append(" 1>");
-    cmd.append(tempFileLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
- 
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("errorMessage.txt");
+    try {
+        gpgme_ctx_t ctx;
+        gpgme_error_t err;
+        gpgme_verify_result_t result;
+        init_gpgme (GPGME_PROTOCOL_OpenPGP);
+        err = gpgme_new (&ctx);
 
-    if(!errorMessage.empty())
-    {
-        return errorMessage;
+        gpgme_data_t msg, out;
+        err = gpgme_data_new_from_mem (&msg, message.convert_cast<string>().c_str(), message.convert_cast<string>().length()+1, 1);
+        err = gpgme_data_new(&out);
+        err = gpgme_op_verify (ctx, msg, NULL, out);
+        result = gpgme_op_verify_result (ctx);
+
+        if(result->signatures)
+        {
+            return result->signatures->summary;
+        }
+        size_t out_size = 0;
+        char* msg_buf = gpgme_data_release_and_get_mem (out, &out_size);
+        std::string returnMessage = std::string(msg_buf);
+        msg = NULL;
+
+        return returnMessage;
     }
-    return returnData;
+    catch(exception& e)
+    {
+        return "Error Occured , Bad Message"; 
+    }
 }
 
 //Verifies wether a message is ok and has not been tampered with
 FB::variant gmailGPGAPI::verifyMessageWithDetachedFile(const FB::variant& message,const FB::variant& sig)
 {
-    string errorFileLocation = m_tempPath + "errorMessage.txt";
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string tempSigLocation = m_tempPath + "tmpMessage.gpg.sig";
-    string tempSigHolder = m_tempPath + "tmpMessage.gpg.enc.sig";
-    string gpgFileLocation = m_appPath + "gpg ";
-    
-    ofstream messageToSign(tempFileLocation.c_str());
-    if(messageToSign.is_open())
+    //Store the base64 data into the tmpMessage file.
+    string tempFileLocation = m_tempPath + "tmpSig";
+    //The path below is where the base64 decoder will dump the binary data.
+    string tempFileLocationFinal = m_tempPath + "tmpMessage.sig";
+    string tempMessageLocation = m_tempPath + "tmpMessage";
+
+    ofstream sigFile(tempFileLocation.c_str());
+    //Open file convert variable to text and dump data
+    if(sigFile.is_open())
     {
-        messageToSign << message.convert_cast<string>().c_str();
-        messageToSign.close();
-    }
-    
-    ofstream tempEncDataHolder(tempSigHolder.c_str());
-    if(tempEncDataHolder.is_open())
-    {
-        tempEncDataHolder << sig.convert_cast<string>().c_str();
-        tempEncDataHolder.close();
+        sigFile << sig.convert_cast<string>().c_str();
+        sigFile.close();
     }
 
-    b64(100,(char *)tempSigHolder.c_str(), (char *)tempSigLocation.c_str(), 72 );
-    
-    ofstream encData(tempFileLocation.c_str(),fstream::out | fstream::app);
-    if(encData.is_open())
+    ofstream msgFile(tempMessageLocation.c_str());
+    //Open file convert variable to text and dump data
+    if(msgFile.is_open())
     {
-        encData << endl;
-        encData.close();
+        msgFile<< message.convert_cast<string>().c_str() <<endl;
+        msgFile.close();
     }
-    
-    string cmd = "";
-    cmd.append(gpgFileLocation);
-    cmd.append("--no-tty --verify ");
-    cmd.append(tempSigLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
-    
-    exec(cmd);
-    
-    remove(tempFileLocation.c_str());
-    remove(tempSigLocation.c_str());
-    remove(tempSigHolder.c_str());
 
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    
-    return errorMessage;
+    //Convert the dumped data to binary , this data has been verified by manually testing it with gpg 
+    b64(100,(char *)tempFileLocation.c_str(), (char *)tempFileLocationFinal.c_str(), 72 );
+
+    try {
+        gpgme_ctx_t ctx;
+        gpgme_error_t err;
+        gpgme_verify_result_t result;
+        init_gpgme (GPGME_PROTOCOL_OpenPGP);
+        err = gpgme_new (&ctx);
+        //fail_if_err(err);
+
+        gpgme_data_t msg, sigData;
+        FILE *fp2=fopen(tempMessageLocation.c_str(), "r");
+        err = gpgme_data_new_from_stream(&msg,fp2);
+        //fail_if_err(err);
+
+        FILE *fp=fopen(tempFileLocationFinal.c_str(), "rb");
+        err = gpgme_data_new_from_stream(&sigData,fp);
+        //fail_if_err(err);
+        err = gpgme_op_verify (ctx, sigData ,msg, NULL);
+        //fail_if_err(err);
+        result = gpgme_op_verify_result (ctx);
+
+        fclose(fp);
+        fclose(fp2);
+        if(result->signatures)
+        {
+           return gpgme_strerror(result->signatures->status);
+           //return result->signatures->summary;
+        }
+        return gpgme_strerror(err);
+    }
+    catch(exception& e)
+    {
+        return "Error Occured , Bad Message"; 
+    }
 }
 
 
-FB::variant gmailGPGAPI::clearSignMessage(const FB::variant& message,const FB::variant& password)
+FB::variant gmailGPGAPI::clearSignMessage(const FB::variant& message)
 {
-    try{
-        string tempFileName = m_tempPath + "tmpMessage.gpg";
-        string errorFileLocation = m_tempPath + "errorMessage.txt";
-        string clearSigFileLocation = m_tempPath + "tmpMessage.gpg.asc";
-        string gpgFileLocation = m_appPath + "gpg ";
-        string returnData = "";
-        string cmd = "";
+    gpgme_ctx_t ctx;
+    gpgme_data_t in, out;
+    gpgme_error_t err;
+    gpgme_sign_result_t result;
 
-        ifstream fin(tempFileName.c_str());
-        if(fin){
-            fin.close();
-            remove(tempFileName.c_str());
-        }
-        
-        ofstream messageToSign(tempFileName.c_str());
-        if(messageToSign.is_open())
-        {
-            messageToSign << message.convert_cast<string>().c_str();
-            messageToSign.close();
-        }
+    init_gpgme (GPGME_PROTOCOL_OpenPGP);
+    err = gpgme_new (&ctx);
 
-        cmd.append("echo \"");
-        cmd.append(password.convert_cast<string>());
-        cmd.append("\" |");
-        cmd.append(" ");
-        cmd.append(gpgFileLocation);
-        cmd.append(" --no-tty --passphrase-fd 0");
-        cmd.append(" --clearsign ");
-        cmd.append(tempFileName);
-        cmd.append(" 2>");
-        cmd.append(errorFileLocation);
-      
-        exec(cmd.c_str());
-        string sigMessage = readAndRemoveErrorFile("tmpMessage.gpg.asc");
-        string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
+    char *agent_info = getenv ("GPG_AGENT_INFO");
+    if (!(agent_info && strchr (agent_info, ':')))
+        gpgme_set_passphrase_cb (ctx, passphrase_cb, NULL);
 
-        if(!errorMessage.empty() && sigMessage.empty())
-        {
-            return errorMessage;
-        }
-        
-        return sigMessage;
-    }catch(exception& e){
-        return "A error occured";
-    }
+    gpgme_set_armor (ctx, 1);
+
+    err = gpgme_data_new_from_mem (&in, message.convert_cast<string>().c_str(), message.convert_cast<string>().length(), 1);
+    err = gpgme_data_new (&out);
+    err = gpgme_op_sign (ctx, in, out, GPGME_SIG_MODE_CLEAR);
+
+    result = gpgme_op_sign_result (ctx);
+
+    size_t out_size = 0;
+    char* out_buf = gpgme_data_release_and_get_mem(out, &out_size);
+    std::string returnData = std::string(out_buf);
+    out = NULL;
+
+    gpgme_data_release (in);
+    gpgme_data_release (out);
+    gpgme_release (ctx);
+
+    return returnData; 
 }
 
-FB::variant gmailGPGAPI::listKeys()
+FB::variant gmailGPGAPI::listKeys(const std::string& domain,int secret_only)
 {
-    string errorFileLocation = m_tempPath +"errorMessage.txt";
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath +"gpg ";
-    
-    string cmd = gpgFileLocation.append(" -k");
-    cmd.append(" 1>");
-    cmd.append(tempFileLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
- 
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
+    gpgme_ctx_t ctx;
+    gpgme_error_t err;
+    init_gpgme (GPGME_PROTOCOL_OpenPGP);
+    err = gpgme_new (&ctx);
 
-    if(!errorMessage.empty())
-    {
-        return errorMessage;
+    gpgme_key_t key;
+    gpgme_keylist_result_t result;
+    gpgme_user_id_t uid;
+    gpgme_key_sig_t sig;
+    gpgme_subkey_t subkey;
+    FB::VariantMap keylist_map;
+
+    FB::VariantMap uid_map;
+
+    err = gpgme_set_protocol(ctx, GPGME_PROTOCOL_OpenPGP);
+    if(err != GPG_ERR_NO_ERROR)
+        return "Protocol loading failed"; //get_error_map(__func__, gpgme_err_code (err), gpgme_strerror (err), __LINE__, __FILE__);
+
+    /* apply the keylist mode to the context and set
+        the keylist_mode 
+        NOTE: The keylist mode flag GPGME_KEYLIST_MODE_SIGS 
+            returns the signatures of UIDS with the key */
+    gpgme_set_keylist_mode (ctx, (gpgme_get_keylist_mode (ctx)
+                                | GPGME_KEYLIST_MODE_VALIDATE 
+                                | GPGME_KEYLIST_MODE_SIGS));
+
+    /* gpgme_op_keylist_start (gpgme_ctx_t ctx, const char *pattern, int secret_only) */
+    if (domain.length() > 0){ // limit key listing to search criteria 'domain'
+        err = gpgme_op_keylist_start (ctx, domain.c_str(), 0);
+    } else { // list all keys
+        err = gpgme_op_keylist_ext_start (ctx, NULL, secret_only, 0);
     }
-    return returnData;
+    if(err != GPG_ERR_NO_ERROR)
+        return "Something Broke";//get_error_map(__func__, gpgme_err_code (err), gpgme_strerror (err), __LINE__, __FILE__);
+        //return keylist_map["error"] = "error: 3; Problem with keylist_start";
+
+    while (!(err = gpgme_op_keylist_next (ctx, &key)))
+     {
+        int nsigs;
+        int tnsigs;
+        FB::VariantMap key_map;
+
+        if (key->uids && key->uids->name)
+            key_map["name"] = nonnull (key->uids->name);
+        if (key->subkeys && key->subkeys->fpr)
+            key_map["fingerprint"] = nonnull (key->subkeys->fpr);
+        if (key->uids && key->uids->email)
+            key_map["email"] = nonnull (key->uids->email);
+        key_map["expired"] = key->expired? true : false;
+        key_map["revoked"] = key->revoked? true : false;
+        key_map["disabled"] = key->disabled? true : false;
+        key_map["invalid"] = key->invalid? true : false;
+        key_map["secret"] = key->secret? true : false;
+        key_map["protocol"] = key->protocol == GPGME_PROTOCOL_OpenPGP? "OpenPGP":
+            key->protocol == GPGME_PROTOCOL_CMS? "CMS":
+            key->protocol == GPGME_PROTOCOL_UNKNOWN? "Unknown": "[?]";
+        key_map["can_encrypt"] = key->can_encrypt? true : false;
+        key_map["can_sign"] = key->can_sign? true : false;
+        key_map["can_certify"] = key->can_certify? true : false;
+        key_map["can_authenticate"] = key->can_authenticate? true : false;
+        key_map["is_qualified"] = key->is_qualified? true : false;
+
+        keylist_map[key->subkeys->keyid] = key_map;
+        gpgme_key_unref (key);
+    }
+
+    if (gpg_err_code (err) != GPG_ERR_EOF) exit(6);
+    err = gpgme_op_keylist_end (ctx);
+    if(err != GPG_ERR_NO_ERROR) exit(7);
+    result = gpgme_op_keylist_result (ctx);
+    if (result->truncated)
+     {
+        return "Results Truncated";//get_error_map(__func__, gpgme_err_code (err), gpgme_strerror (err), __LINE__, __FILE__);
+        //return keylist_map["error"] = "error: 4; Key listing unexpectedly truncated";
+     }
+    gpgme_release (ctx);
+    return keylist_map;
 }
 
 FB::variant gmailGPGAPI::listPrivateKeys()
 {
-    string errorFileLocation = m_tempPath +"errorMessage.txt";
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath +"gpg ";
-    
-    string cmd = gpgFileLocation.append(" --list-secret-keys");
-    cmd.append(" 1>");
-    cmd.append(tempFileLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
-
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
-
-    if(!errorMessage.empty())
-    {
-        return errorMessage;
-    }
-    return returnData;
-}
-       
-FB::variant gmailGPGAPI::testOptions()
-{
-    char* tempFileName;
-    try{
-        Clean_Up_File tempWriter(m_tempPath,"test data");
-        tempFileName = tempWriter.getFileName();
-    }catch(exception& e){
-        if(tempFileName){
-            remove(tempFileName);
-        }
-    }
-
-    string errorFileLocation = m_tempPath +"errorMessage.txt";
-    string tempFileLocation = m_tempPath + "tmpMessage.gpg";
-    string gpgFileLocation = m_appPath +"gpg ";
-    
-    string cmd = gpgFileLocation.append(" --version");
-    cmd.append(" 1>");
-    cmd.append(tempFileLocation);
-    cmd.append(" 2>");
-    cmd.append(errorFileLocation);
-
-    exec(cmd);
-    string errorMessage = readAndRemoveErrorFile("errorMessage.txt");
-    string returnData = readAndRemoveErrorFile("tmpMessage.gpg");
-
-    if(!errorMessage.empty() && returnData.empty())
-    {
-        return errorMessage;
-    }
-    return returnData;
-
+    return listKeys(NULL,1);
 }
