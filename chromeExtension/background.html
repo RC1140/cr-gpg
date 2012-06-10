@@ -9,9 +9,6 @@
         {
             return document.getElementById('plugin0');
         }
-        var testSettings = function(){
-            
-        };
 
         chrome.extension.onRequest.addListener(
         function(request, sender, sendResponse) {
@@ -28,65 +25,48 @@
             if (request.messageType == 'encrypt'){
                 var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
                 if( localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
-                       mailList.push(localStorage["personaladdress"]);
+                    mailList.push(localStorage["personaladdress"]);
                 }
                 var mailMessage = request.encrypt.message;
                 sendResponse({message: plugin0().encrypt(mailList,mailMessage),domid:request.encrypt.domel});
             }else if(request.messageType == 'sign'){
-                sendResponse({message: plugin0().clearSignMessage(request.sign.message,request.sign.passphrase),domid:request.sign.domel});
+                sendResponse({message: plugin0().clearSignMessage(request.sign.message),domid:request.sign.domel});
             }else if(request.messageType == 'verify'){
-                sendResponse({message: plugin0().verifyMessage(request.verify.message),domid:request.verify.domel});
+                var returnMessage = plugin0().verifyMessage(request.verify.message);
+                sendResponse({message: returnMessage.toString() ,domid:request.verify.domel});
             }else if(request.messageType == 'verifyDetached'){
-            sendResponse({message: plugin0().verifyMessageDetached(request.verify.message,request.verify.sig),domid:request.verify.domel});
+                sendResponse({message: plugin0().verifyMessageDetached(request.verify.message,request.verify.sig),domid:request.verify.domel});
             }else if(request.messageType == 'decrypt'){
                 if(request.decrypt.multidec){
-                    var response = plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message);
+                    var response = plugin0().decrypt(request.decrypt.message);
                     response = plugin0().decrypt(request.decrypt.passphrase,response);
                     sendResponse({message: response,domid:request.decrypt.domel});
-                }else{
+                    }else{
                     sendResponse({message: plugin0().decrypt(request.decrypt.passphrase,request.decrypt.message),domid:request.decrypt.domel});
                 };
-            }else if(request.messageType == 'optionLoad'){
-              chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')});
-              sendResponse('options opened');
-            }else if(request.messageType == 'checkOptions' && !alerted){
-                alerted = true;
-                var gpgPath = localStorage['gpgPath'];
-                var tempPath = localStorage['tempPath'];
-                var gpgSet = false;
-                var tempSet = false;
-                if(gpgPath){
-                    gpgSet = true;
-                }
-                if(tempPath){
-                    tempSet = true;
-                }
-                if(!gpgSet || !tempSet){
-                    chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')},function(tab){
-                        chrome.extension.sendRequest({'messageType':'alertUser','gpg':gpgSet,'temp':tempSet});
-                    });
-                };
-
-            }else if(request.messageType == 'testSettings'){
+                }else if(request.messageType == 'optionLoad'){
+                chrome.tabs.create({'selected':true,'url': chrome.extension.getURL('options.html')});
+                sendResponse('options opened');
+                }else if(request.messageType == 'testSettings'){
                 plugin0().appPath = localStorage['gpgPath'];
                 plugin0().tempPath = localStorage['tempPath'];
                 var returnMessage = plugin0().testOptions();
                 if(returnMessage.indexOf('http://gnu.org/licenses/gpl.html') != -1){
-                     if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
-                         var messageblock = plugin0().encrypt([localStorage["personaladdress"]],'Test Message');
-                         if(messageblock.indexOf('-----BEGIN PGP MESSAGE-----') != 0){
-                             sendResponse('selfsign failed');
-                             return;
-                         }else{
-                             sendResponse('ok');
+                    if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
+                        var messageblock = plugin0().encrypt([localStorage["personaladdress"]],'Test Message');
+                        if(messageblock.indexOf('-----BEGIN PGP MESSAGE-----') != 0){
+                            sendResponse('selfsign failed');
+                            return;
+                            }else{
+                            sendResponse('ok');
                         }
-                    }else{
-                         sendResponse('ok');
+                        }else{
+                        sendResponse('ok');
                     };
-                }else{
-                     sendResponse('failed');
-             }   
-         }
+                    }else{
+                    sendResponse('failed');
+                }   
+            }
         });
     </script>
 </html>

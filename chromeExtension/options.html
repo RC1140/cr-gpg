@@ -30,9 +30,8 @@
     </script>
 <script type="text/javascript">
 
-    // Saves options to localStorage.
+// Saves options to localStorage.
 function save_options() {
-
     localStorage["useAutoInclude"] = $('#useAutoInclude')[0].checked;
     if(localStorage["useAutoInclude"] != 'false'){
         if($('#personaladdress').val() != ''){
@@ -42,17 +41,6 @@ function save_options() {
             return; 
         }
     }
-
-    var gpgPath = document.getElementById("gpgPath");
-    var testGPGPath = gpgPath.value.toString();
-    if(!testGPGPath.match(/\/$/)){
-        if($.client.os == 'Windows'){
-            testGPGPath += '\\';
-        }else{
-            testGPGPath += '/';
-        }
-    };
-    localStorage["gpgPath"] = testGPGPath;
 
     var tempPath = document.getElementById("tempPath");
     var testTempPath = tempPath.value.toString();
@@ -64,27 +52,11 @@ function save_options() {
         }
     };
     localStorage["tempPath"] = testTempPath;
-
-    chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
-            if(response == 'failed'){
-                alert('options saved but parameters provided are invalid');
-            }else if(response == 'selfsign failed'){
-                localStorage["useAutoInlcude"] = false;
-                alert('No public key found for the email address set for Encrypt to self , as such it has been disabled till a valid public key is set');
-            }else{
-                alert('options saved');
-            }
-
-    });
+    alert('Saved');
 }
 
 // Restores select box state to saved value from localStorage.
 function restore_options() {
-    var gpgPath = document.getElementById("gpgPath");
-    if(localStorage["gpgPath"]){
-        gpgPath.value = localStorage["gpgPath"]; 
-    };
-
     var tempPath = document.getElementById("tempPath");
     if(localStorage["tempPath"]){
         tempPath.value = localStorage["tempPath"]; 
@@ -94,20 +66,7 @@ function restore_options() {
     };
     $('#personaladdress').val(localStorage["personaladdress"]);
 }
-function restore_gpg_default() {
-    var gpgPath = document.getElementById("gpgPath");
-    switch($.client.os){
-        case 'Mac' :
-            gpgPath.value = '/opt/local/bin/'; 
-            break;
-        case 'Windows' :
-            gpgPath.value = 'C:\\Program Files (x86)\\GNU\\GnuPG\\pub\\'
-            break;
-        case 'Linux' :
-            gpgPath.value = '/usr/bin/'; 
-            break;
-    }
-}
+
 function restore_temp_default() {
     var tempPath = document.getElementById("tempPath");
     switch($.client.os){
@@ -123,57 +82,50 @@ function restore_temp_default() {
     }
 }
 </script>
+<head><title>GPG Options</title> </head>
+<body onload="restore_options()">
+    <div class="interface">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">Settings</a></li>
+                <li><a href="#tabs-2">About</a></li>
+            </ul>
+            <div id="tabs-1">
+                <table>
+                    <tr>
+                        <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
+                            <a onclick="restore_temp_default()" href="#">Use Default</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Encrypt to self :</td><td> <input id="useAutoInclude" type="checkbox"></input> </td>
+                    </tr>
+                    <tr>
+                        <td>Encrypt to self Email Address :</td><td> <input id="personaladdress" type="text"></input></td>
+                    </tr>
+                </table>
+                <button onclick="save_options()">Save</button>
 
-
-    <head><title>GPG Options</title> </head>
-    <body onload="restore_options()">
-        <div class="interface">
-            <div id="tabs">
-                <ul>
-                    <li><a href="#tabs-1">Settings</a></li>
-                    <li><a href="#tabs-2">About</a></li>
-                </ul>
-                <div id="tabs-1">
-                    <table>
-                        <tr>
-                            <td>Directory with gpg binary:</td><td> <input id="gpgPath" type="text"></input>
-                                <a onclick="restore_gpg_default()" href="#">Use Default</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Temp folder path (writable by the browser) :</td><td> <input id="tempPath" type="text"></input>
-                                <a onclick="restore_temp_default()" href="#">Use Default</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Encrypt to self :</td><td> <input id="useAutoInclude" type="checkbox"></input> </td>
-                        </tr>
-                        <tr>
-                            <td>Encrypt to self Email Address :</td><td> <input id="personaladdress" type="text"></input></td>
-                        </tr>
-                    </table>
-                    <button onclick="save_options()">Save</button>
-
+            </div>
+            <div id="tabs-2">
+                <div>
+                    <img src="icon.png" style="float:right" />
+                    <div style="font-size: 1.1em; font-weight: bold;">Cr-gpg (Version : 0.7.8)</div>
+                    <div style="color:red; font-size: 1.1em; font-weight: bold;">This plugin is Alpha</div>
+                    <p> Cr-gpg is a quick hack to allow you to use common cryptographic functionality (provided by gpg) inside Gmail. 
+                         It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability.
+                         <i>(We said it was a quick hack!)</i>
+                     </p>                        
+                    <span style="float:left">Hacked together by: jameel@thinkst.com<BR/>
+                    Grab new versions at: <b><a target="_blank" href="http://thinkst.com/tools/cr-gpg">http://thinkst.com/tools/cr-gpg</a></b></span>
+                    <br/><br/><br/>
                 </div>
-                <div id="tabs-2">
-                    <div>
-                        <img src="icon.png" style="float:right" />
-                        <div style="font-size: 1.1em; font-weight: bold;">Cr-gpg (Version : 0.7.8)</div>
-                        <div style="color:red; font-size: 1.1em; font-weight: bold;">This plugin is Alpha</div>
-						<p> Cr-gpg is a quick hack to allow you to use common cryptographic functionality (provided by gpg) inside Gmail. 
-							 It uses <a target="_blank" href="http://code.google.com/p/firebreath/">firebreath</a> for browser compatability and <u>doesnt</u> use GPGME!
-							 <i>(We said it was a quick hack!)</i>
-						 </p>                        
-						<span style="float:left">Hacked together by: jameel@thinkst.com<BR/>
-                        Grab new versions at: <b><a target="_blank" href="http://thinkst.com/tools/cr-gpg">http://thinkst.com/tools/cr-gpg</a></b></span>
-                        <br/><br/><br/>
-                    </div>
-					<div style="font-size: .9em;" align="right"><a target="_blank" href="http://thinkst.com">home</a> |<a target="_blank" href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2012 - thinkst.com</div>
-                </div>
+                <div style="font-size: .9em;" align="right"><a target="_blank" href="http://thinkst.com">home</a> |<a target="_blank" href="http://blog.thinkst.com"> blog</a> |Copyright &copy; 2012 - thinkst.com</div>
+            </div>
 
 
-                </div>
+            </div>
 
-    </body>
+</body>
 
 </html>

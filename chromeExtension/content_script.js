@@ -1,5 +1,5 @@
 $(document).ready(function(){
-        chrome.extension.sendRequest({'messageType':'checkOptions'});
+        //chrome.extension.sendRequest({'messageType':'checkOptions'});
         //Listen for decrypt click
         var decryptMessageHandler = function(that){
             var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('decid')).closest('.gs').find('.ii.gt');
@@ -10,8 +10,8 @@ $(document).ready(function(){
             if(emailMessage.indexOf('- -----BEGIN PGP MESSAGE') !== -1){
                 multiDec = true; 
             }
-            var pp = $('input#passpharsedlg[type="password"]',that).val();
-            chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':pp,'message':emailMessage,'domel':$(that).attr('decid'),'multidec':multiDec}}, function(response) {
+            //var pp = $('input#passpharsedlg[type="password"]',that).val();
+            chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'message':emailMessage,'domel':$(that).attr('decid'),'multidec':multiDec}}, function(response) {
                 if(response.message.indexOf('decryption failed') == -1){
                     if(response.message.indexOf('no valid OpenPGP data found') == -1){
                         var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
@@ -39,39 +39,22 @@ $(document).ready(function(){
         
         var clearSignHandler = function(that){
             event.preventDefault();
-            var test = $('<div decID="'+$(that).attr('id')+'" title="Please enter your passphrase">Passphrase : <input type="password" width="100%"></input></div>');
-            jQuery.dLoader = $(test).dialog({
-                width:450,
-                buttons: [{
-                    text: "Ok",
-                    click: function () {
-                        var messageElement = $('#canvas_frame').contents().find('#'+$(this).attr('decid')).closest('.fN').find('.Ak');
-                        var emailMessage = messageElement.val(); 
-                        var pp = $('input[type="password"]',this).val();
-                        chrome.extension.sendRequest({'messageType':'sign',sign: {'passphrase':pp,'message':emailMessage,'domel':$(this).attr('decid')}}, function(response) {
-                            var returnMessage = response.message;
-                            if(returnMessage.length > 1){
-                                var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.fN').find('.Ak');
-                                if(returnMessage.indexOf('gpg:') != -1){
-                                        alert(returnMessage); 
-                                        return;
-                                };
-                                $(messageElement).val(returnMessage);
-                            }else{
-                                alert('No public keys found for recipients');
-                            }
-                            jQuery.dLoader.dialog("close");
-
-                      });                    
-                    }
-                }, {
-                    text: "Cancel",
-                    click: function () {
-                        $(this).dialog("close");
-                    }
-                }]
+            var messageElement = $('#canvas_frame').contents().find($(that)).closest('.fN').find('.Ak');
+            var emailMessage = messageElement.val(); 
+            jQuery.returnEl = that;
+            chrome.extension.sendRequest({'messageType':'sign',sign: {'message':emailMessage}}, function(response) {
+                var returnMessage = response.message;
+                if(returnMessage.length > 1){
+                    var messageElement = $('#canvas_frame').contents().find($(jQuery.returnEl)).closest('.fN').find('.Ak');
+                    if(returnMessage.indexOf('gpg:') != -1){
+                            alert(returnMessage); 
+                            return;
+                    };
+                    $(messageElement).val(returnMessage);
+                }else{
+                    alert('No public keys found for recipients');
+                }
             });
-            
         };       
 
         var composerHandler = function(that){
@@ -155,7 +138,6 @@ $(document).ready(function(){
             var emailMessage = $(messageElement).val(); 
             chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(that).attr('id'),'maillist':encryptionList}}, function(response) {
                 var returnMessage = response.message;
-                console.log(returnMessage);
                 if(returnMessage.length > 1){
                     var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
@@ -202,25 +184,25 @@ $(document).ready(function(){
             $('[customFunction="decrypt"]',searchLocation).unbind('click');
             $('[customFunction="decrypt"]',searchLocation).click(function(){
                 event.preventDefault();
-                var tempDialog = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase" style="font-size: 0.7em;">Passphrase : <input id="passpharsedlg" type="password" width="100%"></input></div>');
-                $(tempDialog).keyup(function(e) {
-                    if (e.keyCode == 13) {
-                        decryptMessageHandler(this);
-                    };
-                });
+                decryptMessageHandler(this);
+                //var tempDialog = $('<div decID="'+$(this).attr('id')+'" title="Please enter your passphrase" style="font-size: 0.7em;">Passphrase : <input id="passpharsedlg" type="password" width="100%"></input></div>');
+                //$(tempDialog).keyup(function(e) {
+                 //   if (e.keyCode == 13) {
+                  //  };
+                //});
 
-                jQuery.dLoader = $(tempDialog).dialog({
-                    width:450,
-                    buttons: [{
-                        text: "Ok",
-                        click: function(){ decryptMessageHandler(this); }
-                    }, {
-                        text: "Cancel",
-                        click: function () {
-                            $(this).dialog("close");
-                        }
-                    }]
-                });
+                //jQuery.dLoader = $(tempDialog).dialog({
+                    //width:450,
+                    //buttons: [{
+                        //text: "Ok",
+                        //click: function(){ decryptMessageHandler(this); }
+                    //}, {
+                        //text: "Cancel",
+                        //click: function () {
+                            //$(this).dialog("close");
+                        //}
+                    //}]
+                //});
             });
 
             $('[customFunction="encrypt"]',searchLocation).unbind('click');
@@ -244,10 +226,10 @@ $(document).ready(function(){
             $('[customFunction="verify"]',searchLocation).click(function(){
                 event.preventDefault();
                 var messageElement = $(this).closest('.gs').find('.ii.gt').text();
-                //Code To handle importing and splitting of external sigs.
 
+                //Code To handle importing and splitting of external sigs.
                 var otherText = $(this).closest('.gs').find('.hq.gt a');
-                if(otherText.length>0){
+                if(otherText.length > 0){
                     var pairs = $(otherText[0]).attr('href').split('&');
                     var nvpair = {};
                     $.each(pairs, function(i, v){
@@ -323,12 +305,28 @@ $(document).ready(function(){
 
                     });
                 }else{
-                    var messageElement = $(this).closest('.gs').find('.ii.gt').text();
+
                     chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
-                        var returnMessage = response.message;
-                        if(returnMessage.length > 1){
-                            var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
-                            alert(returnMessage); 
+                        var returnMessage = parseInt(response.message);
+                        if(returnMessage){
+                            var alertMessage = '';
+                            switch(returnMessage){
+                                case 1: 
+                                     alertMessage += 'The signature is fully valid. ';
+                                     break;
+                                case 2: 
+                                     alertMessage += 'The signature is good [Green]. ';
+                                     break;
+                                case 3: 
+                                     alertMessage += 'The signature is fully valid. ';
+                                     alertMessage += 'The signature is good [Green]. ';
+                                     break;
+                                case 4:
+                                     alertMessage += 'The signature is bad [Red]. ';
+                                     break;
+                            };
+                            //var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
+                            alert(alertMessage); 
                             return;
                         }else{
                             alert('No public keys found for recipients');
@@ -357,7 +355,7 @@ $(document).ready(function(){
         
         //Old theme support for the compose email section
         var loadComposeButtons = function(searchLocation){
-            $('span.es.el:not(.customdec)',searchLocation).each(function(){
+            $('span.es.el:contains(Rich)',searchLocation).each(function(){
                 if(!$(this).prev().hasClass('customdec')){
                     var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                     var newButton = $(this).before(
@@ -405,7 +403,7 @@ $(document).ready(function(){
         $('#canvas_frame').contents().keypress(function(e){
             //Tiny timeout is required so that the html can be rendered
             setTimeout(function(){
-                loadButtons($('#canvas_frame').contents().find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
+                loadButtons($('#canvas_frame').contents().find('tr.acZ td.gH.acX div[title="Reply"]')); 
                 var highLevelCheck = $('#canvas_frame').contents().find('.nH');
                 loadGenericFunctionHandlers(highLevelCheck);
                 loadOldThemesButtons(highLevelCheck);
@@ -417,7 +415,7 @@ $(document).ready(function(){
         $('#canvas_frame').contents().on('mouseover','.nH',function(){
             loadOldThemesButtons(this);
             loadComposeButtons(this);
-            loadButtons($(this).find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
+            loadButtons($(this).find('tr.acZ td.gH.acX div[title="Reply"]')); 
             loadGenericFunctionHandlers(this);
         });
 });
