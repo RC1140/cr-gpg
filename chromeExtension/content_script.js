@@ -403,7 +403,7 @@ $(document).ready(function(){
         $('#canvas_frame').contents().keypress(function(e){
             //Tiny timeout is required so that the html can be rendered
             setTimeout(function(){
-                loadButtons($('#canvas_frame').contents().find('tr.acZ td.gH.acX div[title="Reply"]')); 
+                loadButtons($('#canvas_frame').contents().find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
                 var highLevelCheck = $('#canvas_frame').contents().find('.nH');
                 loadGenericFunctionHandlers(highLevelCheck);
                 loadOldThemesButtons(highLevelCheck);
@@ -415,7 +415,7 @@ $(document).ready(function(){
         $('#canvas_frame').contents().on('mouseover','.nH',function(){
             loadOldThemesButtons(this);
             loadComposeButtons(this);
-            loadButtons($(this).find('tr.acZ td.gH.acX div[title="Reply"]')); 
+            loadButtons($(this).find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
             loadGenericFunctionHandlers(this);
         });
 });
