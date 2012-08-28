@@ -1,5 +1,6 @@
 {
   "name": "Cr-gpg",
+  "manifest_version": 2,
   "version": "0.7.8",
   "description": "Chrome-gpg. Quick hack that bridges gmail to your locally installed gpg.",
   "icons":{"128":"icon.png"},
@@ -8,12 +9,12 @@
   "browser_action": {
       "default_title": "The chrome gpg encryption plugin",
       "default_icon": "icon.png",
-      "popup": "popup.html"
+      "default_popup": "popup.html"
   },
   "options_page": "options.html",
   "plugins": [
      {"path": "gmailGPG.plugin" },
-     {"path": "gmailGPG.dll"},
+     {"path": "binaries/WINNT_x86-msvc/npgpgAuth-v1.0.3b.dll"},
      {"path": "gmailGPG64_Fedora.so"},
      {"path": "gmailGPG64_Ubuntu.so"},
      {"path": "gmailGPG32_Fedora.so"},
@@ -31,5 +32,7 @@
       "http://mail.google.com/*", 
       "https://mail.google.com/*"
     ],
-    "background_page":"background.html"
+  "background": {
+    "page": "background.html"
+  }
 }
