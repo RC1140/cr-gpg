@@ -38,10 +38,10 @@ if (request.messageType == 'encrypt'){
     sendResponse({message: plugin0().verifyMessageDetached(request.verify.message,request.verify.sig),domid:request.verify.domel});
 }else if(request.messageType == 'decrypt'){
         //Make sure you handle the multidec call which handles encryption within encryption
-        console.log(request);
-        var dec_result = plugin0().gpgDecrypt(request.decrypt.message,1);
+        var dec_result = plugin0().gpgDecrypt(request.decrypt.message);
+        console.log(dec_result);
         if(!dec_result.error){
-            sendResponse({message: response.data,domid:request.decrypt.domel});
+            sendResponse({message: dec_result.data,domid:request.decrypt.domel});
         }else{
             sendResponse({message: 'An Error Occured',domid:request.decrypt.domel});
         };
