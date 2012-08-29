@@ -163,7 +163,7 @@ $(document).ready(function(){
                                           'tabindex="0" style="-webkit-user-select: none; " ',
                                           'aria-label="Decrypt Message" data-tooltip="Decrypt Message">',
                                           '<img role="button" style="padding-top:4px;" ', 
-                                          'src="'+chrome.extension.getURL('sprite_black2.png')+'" alt="">',
+                                          'src="'+chrome.extension.getURL('images/sprite_black2.png')+'" alt="">',
                                           '</a>' ].join('')
                     var verifyButton = [ '<a id="'+id+'" customFunction="verify" ',
                                           'class="T-I J-J5-Ji T-I-Js-IF aaq T-I-ax7 L3 customdec" ',
@@ -171,7 +171,7 @@ $(document).ready(function(){
                                           'tabindex="0" style="-webkit-user-select: none; " ',
                                           'aria-label="Verify Message" data-tooltip="Verify Message">',
                                           '<img role="button" style="padding-top:4px;" ', 
-                                          'src="'+chrome.extension.getURL('verify.png')+'" alt="">',
+                                          'src="'+chrome.extension.getURL('images/verify.png')+'" alt="">',
                                           '</a>' ].join('')
 
                     $(items[loopindex]).before(decryptButton + verifyButton);
