@@ -26,10 +26,8 @@ $(document).ready(function(){
                         }else{
                             $($(messageElement).children()[0]).html(tempMessage); 
                         }
-                        jQuery.dLoader.dialog("close");
                     }else{
-                        alert(response.message); 
-                        jQuery.dLoader.dialog("close");
+                        alert(response.message);
                     }
                 }else{
                     alert(response.message); 
