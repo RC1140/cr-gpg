@@ -14,8 +14,8 @@
   "options_page": "options.html",
   "plugins": [
      {"path": "binaries/Windows/npwebpgPlugin-v0.5.9.dll"},
-     {"path": "binaries/Mac/npwebpgPlugin-v0.5.9.plugin"}
-     {"path": "binaries/Ubuntu/npwebpgPlugin-v0.5.9_32.so"}
+     {"path": "binaries/Mac/npwebpgPlugin-v0.5.9.plugin"},
+     {"path": "binaries/Ubuntu/npwebpgPlugin-v0.5.9_32.so"},
      {"path": "binaries/Ubuntu/npwebpgPlugin-v0.5.9_64.so"}
   ],
   "content_scripts": [
