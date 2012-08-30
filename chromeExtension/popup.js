@@ -14,73 +14,29 @@ $(document).ready(function(){
         });
     });
 
-    $('#newPage').click(function(){
-        chrome.tabs.create({url:chrome.extension.getURL('general.html')});
-    });
-
     $('div.verify').click(function(){
         $(this).html('');
     });
+    
     $('.sign').click(function(){
-        var gpgPath = localStorage['gpgPath'];
-        var tempPath = localStorage['tempPath'];
-        if(!gpgPath){
-            gpgPath = '/opt/local/bin/'; 
+        var signing_key = plugin0().gpgGetPreference('default-key').value;
+        var sign_status = plugin0().gpgSignText([signing_key],$('#sigmessage').val(), 2);
+        if(!sign_status.error){
+            $('#sigmessage').val(sign_status.data);       
+        }else{
+            $('#sigmessage').val(JSON.stringify(sign_status, undefined, 2));       
         };
-        if(!tempPath){
-            tempPath = '/tmp/'; 
-        }
-        plugin0().appPath = gpgPath;
-        plugin0().tempPath = tempPath;
-        $('#sigmessage').val(plugin0().clearSignMessage($('#sigmessage').val(),$('#sigPass').val()));   
-    });
-    $('.decrypt').click(function(){
-        var gpgPath = localStorage['gpgPath'];
-        var tempPath = localStorage['tempPath'];
-        if(!gpgPath){
-            gpgPath = '/opt/local/bin/'; 
-        };
-        if(!tempPath){
-            tempPath = '/tmp/'; 
-        }
-        plugin0().appPath = gpgPath;
-        plugin0().tempPath = tempPath;
-        chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'passphrase':$('#decPass').val(),'message':$('#decmessage').val()}}, function(response) {
-            if(response.message.indexOf('decryption failed') == -1){
-                if(response.message.indexOf('no valid OpenPGP data found') == -1){
-                    $('#decmessage').val(response.message); 
-                }
-            }else{
-                alert(response.message); 
-            };
-        });   
+        
     });
     $('.verify').click(function(){
-        var gpgPath = localStorage['gpgPath'];
-        var tempPath = localStorage['tempPath'];
-        if(!gpgPath){
-            gpgPath = '/opt/local/bin/'; 
-        };
-        if(!tempPath){
-            tempPath = '/tmp/'; 
-        }
-        plugin0().appPath = gpgPath;
-        plugin0().tempPath = tempPath;
-        $('div.verify').text(plugin0().verifyMessage($('#sigmessage').val()) + '. Click to Clear this Message');   
+        var verify_status = plugin0().gpgVerify($('#sigmessage').val());
+        $('div.verify').text(JSON.stringify(verify_status, undefined, 2));   
     });
 
     $('.import').click(function(){
-        var gpgPath = localStorage['gpgPath'];
-        var tempPath = localStorage['tempPath'];
-        if(!gpgPath){
-            gpgPath = '/opt/local/bin/'; 
-        };
-        if(!tempPath){
-            tempPath = '/tmp/'; 
-        }
-        plugin0().appPath = gpgPath;
-        plugin0().tempPath = tempPath;
-        $('textarea.message').val(plugin0().importKey($('textarea.message').val()));   
+        chrome.extension.sendRequest({'messageType':'importkey',import: {'message':$('textarea.message').val()}}, function(response) {
+            $('textarea.message').val(JSON.stringify(response.message, undefined, 2));   
+        });   
     });
     $('textarea').click(function(){
         if($(this).text() == 'Enter text here'){
@@ -93,12 +49,6 @@ $(document).ready(function(){
         };
 
     });
-    $('.usedefault-gpg').click(function(){
-        $('#gpgPath').val('/opt/local/bin/');
-    });
-    $('.usedefault-temp').click(function(){
-        $('#tempPath').val('/tmp/');
-    });
     $('button.save-options').click(function(){
         localStorage["useAutoInclude"] = $('#useAutoInclude')[0].checked;
         if(localStorage["useAutoInclude"] != 'false'){
@@ -110,23 +60,8 @@ $(document).ready(function(){
                 return; 
             }
         };
-        var gpgPath = document.getElementById("gpgPath");
-        localStorage["gpgPath"] = gpgPath.value;
-        var tempPath = document.getElementById("tempPath");
-        localStorage["tempPath"] = tempPath.value;
         chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
-                if(response == 'failed'){
-                    $('#options-reponse').html('options saved but parameters provided are invalid');   
-                    $('#options-reponse').css('color','red');
-                }else if(response == 'selfsign failed'){
-                    localStorage["useAutoInlcude"] = false;
-                    $('#options-reponse').html('No public key found for the email address set for Encrypt to self , as such it has been disabled till a valid public key is set');   
-                    $('#options-reponse').css('color','red');
-                }else{
-                    $('#options-reponse').html('options saved');   
-                    $('#options-reponse').css('color','green');
-                }
-
+            alert('Saved');
         });
     });
 
@@ -135,8 +70,7 @@ $(document).ready(function(){
     };
 
     $('#personaladdress').val(localStorage["personaladdress"]);
-    $('#gpgPath').val(localStorage["gpgPath"]);
-    $('#tempPath').val(localStorage["tempPath"]);
+    
 
     $(function() {
         $( "#tabs" ).tabs();

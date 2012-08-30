@@ -1,5 +1,4 @@
 $(document).ready(function(){
-        //chrome.extension.sendRequest({'messageType':'checkOptions'});
         //Listen for decrypt click
         var decryptMessageHandler = function(that){
             var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('decid')).closest('.gs').find('.ii.gt');
@@ -142,7 +141,12 @@ $(document).ready(function(){
                         alert(returnMessage); 
                         return;
                     };
-                    $(messageElement).val(returnMessage);
+                    if (response.error) {
+                        $(messageElement).val(returnMessage);    
+                    }else{
+                        alert(returnMessage);
+                    };
+                    
                 }else{
                     alert('No public keys found for recipients');
                 }
@@ -284,30 +288,15 @@ $(document).ready(function(){
                 }else{
 
                     chrome.extension.sendRequest({'messageType':'verify',verify: {'message':messageElement,'domel':$(this).attr('id')}}, function(response) {
-                        var returnMessage = parseInt(response.message);
-                        if(returnMessage){
-                            var alertMessage = '';
-                            switch(returnMessage){
-                                case 1: 
-                                     alertMessage += 'The signature is fully valid. ';
-                                     break;
-                                case 2: 
-                                     alertMessage += 'The signature is good [Green]. ';
-                                     break;
-                                case 3: 
-                                     alertMessage += 'The signature is fully valid. ';
-                                     alertMessage += 'The signature is good [Green]. ';
-                                     break;
-                                case 4:
-                                     alertMessage += 'The signature is bad [Red]. ';
-                                     break;
-                            };
-                            //var messageElement = $('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
-                            alert(alertMessage); 
-                            return;
-                        }else{
-                            alert('No public keys found for recipients');
-                        }
+                        var sigsStatus = "";
+                        for(var stat in response.message.signatures){
+                            var currenStat = response.message.signatures[stat]
+                            sigsStatus += "Signature With Fingerprint :" + currenStat.fingerprint + " [ " +currenStat.status + " ]\n";
+                        };
+                        if(sigsStatus == ''){
+                            sigsStatus = "Unable to verify message";
+                        };
+                        alert(sigsStatus); 
                     });
                 }
 
