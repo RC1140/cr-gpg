@@ -35,11 +35,7 @@ if (request.messageType == 'encrypt'){
 }else if(request.messageType == 'sign'){
     var signing_key = plugin0().gpgGetPreference('default-key').value
     var sign_status = plugin0().gpgSignText([signing_key],request.sign.message, 2);
-    console.log(sign_status);
-    if (!sign_status.error && sign_status.data.length > 0) {
-        sendResponse({message: sign_status.data,domid:request.sign.domel});
-    };
-    
+    sendResponse({message: sign_status,domid:request.sign.domel});
 }else if(request.messageType == 'verify'){    
     var verify_status = plugin0().gpgVerify(request.verify.message);
     sendResponse({message: verify_status ,domid:request.verify.domel})
