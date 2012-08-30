@@ -19,14 +19,13 @@ $(document).ready(function(){
     });
     
     $('.sign').click(function(){
-        var signing_key = plugin0().gpgGetPreference('default-key').value;
-        var sign_status = plugin0().gpgSignText([signing_key],$('#sigmessage').val(), 2);
-        if(!sign_status.error){
-            $('#sigmessage').val(sign_status.data);       
-        }else{
-            $('#sigmessage').val(JSON.stringify(sign_status, undefined, 2));       
-        };
-        
+        chrome.extension.sendRequest({'messageType':'sign',sign: {'message':$('#sigmessage').val()}}, function(response) {
+            if(!response.message.error){
+                $('#sigmessage').val(response.message.data);       
+            }else{
+                $('#sigmessage').val(JSON.stringify(response.message, undefined, 2));       
+            };
+        });
     });
     $('.verify').click(function(){
         var verify_status = plugin0().gpgVerify($('#sigmessage').val());
@@ -36,7 +35,7 @@ $(document).ready(function(){
     $('.import').click(function(){
         chrome.extension.sendRequest({'messageType':'importkey',import: {'message':$('textarea.message').val()}}, function(response) {
             $('textarea.message').val(JSON.stringify(response.message, undefined, 2));   
-        });   
+        });
     });
     $('textarea').click(function(){
         if($(this).text() == 'Enter text here'){
