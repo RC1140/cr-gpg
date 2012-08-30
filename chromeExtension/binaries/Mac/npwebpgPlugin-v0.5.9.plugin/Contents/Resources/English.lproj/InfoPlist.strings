@@ -1,0 +1,4 @@
+/* Localized versions of Info.plist keys */
+
+CFBundleName = "npwebpgPlugin-v0.5.9.plugin";
+NSHumanReadableCopyright = "Copyright 2012 CURE|THE|ITCH";
