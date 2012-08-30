@@ -141,7 +141,7 @@ $(document).ready(function(){
                         alert(returnMessage); 
                         return;
                     };
-                    if (response.error) {
+                    if (!response.error) {
                         $(messageElement).val(returnMessage);    
                     }else{
                         alert(returnMessage);

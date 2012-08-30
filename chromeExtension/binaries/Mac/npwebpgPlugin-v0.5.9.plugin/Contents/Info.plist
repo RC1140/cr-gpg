@@ -7,21 +7,21 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>gmailGPG</string>
+	<string>webpgPlugin</string>
 	<key>CFBundleGetInfoString</key>
-	<string>gmailGPG 1.0.0.0, Copyright 2011 private</string>
+	<string>webpgPlugin 0.5.9, Copyright 2012 CURE|THE|ITCH</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.gmailGPGLib.gmailGPG</string>
+	<string>com.webpgPluginLib.WebPG</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
 	<string>BRPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>gmailGPG 1.0.0.0</string>
+	<string>0.5.9</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.0.0</string>
+	<string>0.5.9</string>
 	<key>CFPlugInDynamicRegisterFunction</key>
 	<string></string>
 	<key>CFPlugInDynamicRegistration</key>
@@ -55,7 +55,7 @@
 	<key>DTXcodeBuild</key>
 	<string>4A304a</string>
 	<key>WebPluginDescription</key>
-	<string>gmail gpg plugin</string>
+	<string>A browser agnostic NPAPI interface to GnuPG</string>
 	<key>WebPluginMIMETypes</key>
 	<dict>
 		<key>application/x-gmailgpg</key>
@@ -65,10 +65,10 @@
 				<string></string>
 			</array>
 			<key>WebPluginTypeDescription</key>
-			<string>gmail gpg plugin</string>
+			<string>A browser agnostic NPAPI interface to GnuPG</string>
 		</dict>
 	</dict>
 	<key>WebPluginName</key>
-	<string>gmailGPG</string>
+	<string>WebPG</string>
 </dict>
 </plist>
