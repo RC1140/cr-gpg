@@ -64,8 +64,8 @@ $(document).ready(function(){
             inlineReply.each(function(index,item){
                     if($(item).val() != ''){
                         var emailAddress = $(item).val();
-                        if(/<.*>/.test(emailAddress)){
-                            emailAddress = emailAddress.match(/<.*>/)[0].replace('<','').replace('>','');
+                        if(/<[^>]*>/.test(emailAddress)){
+                            emailAddress = emailAddress.match(/<[^>]*>/)[0].replace('<','').replace('>','');
                             emailAddress  = emailAddress.trim();
                         };
                         encryptionList += emailAddress +',';
@@ -116,22 +116,29 @@ $(document).ready(function(){
             if(inlineReply.length == 0){
                 inlineReply = $(that).closest('.fN').find('textarea.dK.nr');
             };
-            var encryptionList = '';
+
+            var encryptionList = [];
             inlineReply.each(function(index,item){
                 if($(item).val() != ''){
                     var emailAddress = $(item).val();
-                    if(/<.*>/.test(emailAddress)){
-                        emailAddress = emailAddress.match(/<.*>/)[0].replace('<','').replace('>','');
-                        emailAddress  = emailAddress.trim();
-                    };
-                    encryptionList += emailAddress +',';
+                    var splitItems = emailAddress.split(',')
+                    $.each(splitItems,function(index,sItem){
+                        if(/<[^>]*>/.test(sItem)){
+                            sItem = sItem.match(/<[^>]*>/)[0].replace('<','').replace('>','');
+                            sItem  = sItem.trim();
+                        };
+                        encryptionList.push(sItem);
+                    });
+                    
                 }
             });
-            encryptionList = encryptionList.replace(/,$/,'').split(',');
+            
+            // encryptionList = encryptionList.replace(/,$/,'').split(',');
             encryptionList = encryptionList.filter(function(val) { return val.trim() !== '' })
             //for(var i=0;i<encryptionList.length;i++){
                 //encryptionList[i] = encryptionList[i].trim();
             //};
+            
             var emailMessage = $(messageElement).val(); 
             chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(that).attr('id'),'maillist':encryptionList}}, function(response) {
                 var returnMessage = response.message;
@@ -264,8 +271,6 @@ $(document).ready(function(){
                         origMessage = origMessage.join('\n').trim();
                         sigDetail = sigDetail.join('\n').trim();
                         
-                        console.log(origMessage);
-                        console.log(sigDetail);
                         var request = {
                             'messageType':'verifyDetached',
                             verify: {'message':origMessage,
@@ -275,7 +280,6 @@ $(document).ready(function(){
                         };
                         chrome.extension.sendRequest(request, function(response) {
                             var returnMessage = response.message;
-                            console.log(response);
                             if(returnMessage.length > 1){
                                 alert(returnMessage); 
                                 return;

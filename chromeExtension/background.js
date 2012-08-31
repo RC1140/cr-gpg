@@ -7,12 +7,26 @@ function plugin0()
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse) {
         if (request.messageType == 'encrypt'){
-            var mailList = request.encrypt.maillist.filter(function(val) { return val !== null; });
+            var mailList = request.encrypt.maillist;
             if( localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
                 mailList.push(localStorage["personaladdress"]);
             }
             var mailMessage = request.encrypt.message;
-            var enc_result = plugin0().gpgEncrypt(mailMessage, mailList, '', '');
+            var currentPubKeyList = [];
+            for(var k in  plugin0().getPublicKeyList())
+            {
+                currentPubKeyList.push(plugin0().getPublicKeyList()[k].email);
+            }
+            for(var encRec in  mailList)
+            {
+                if(currentPubKeyList.indexOf(mailList[encRec]) == -1){
+                    sendResponse({error:true,message: 'You do not have a public key stored for '+mailList[encRec] + ' please remove the user or import their public key',domid:request.encrypt.domel});        
+                    return;
+                }
+                
+            }
+            
+            var enc_result = plugin0().gpgEncrypt(mailMessage, mailList.join(','), '', '');
             if(!enc_result.error && enc_result.data){
                 sendResponse({message: enc_result.data,domid:request.encrypt.domel});
             }else{
@@ -41,7 +55,6 @@ chrome.extension.onRequest.addListener(
         }else if(request.messageType == 'decrypt'){
             //TODO : Make sure you handle the multidec call which handles encryption within encryption
             var dec_result = plugin0().gpgDecrypt(request.decrypt.message);
-            console.log(dec_result);
             if(!dec_result.error){
                 sendResponse({message: dec_result.data,domid:request.decrypt.domel});
             }else{
