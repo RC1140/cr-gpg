@@ -26,7 +26,7 @@ chrome.extension.onRequest.addListener(
                 
             }
             
-            var enc_result = plugin0().gpgEncrypt(mailMessage, mailList.join(','), '', '');
+            var enc_result = plugin0().gpgEncrypt(mailMessage, mailList, '', '');
             if(!enc_result.error && enc_result.data){
                 sendResponse({message: enc_result.data,domid:request.encrypt.domel});
             }else{
