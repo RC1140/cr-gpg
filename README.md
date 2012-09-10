@@ -3,17 +3,13 @@
 A chrome plugin that enables gpg encryption and decryption for the gmail web interface.
 Download it from [here](http://thinkst.com/tools/cr-gpg/)
 
-## Known Issues: 
-
-- The popup window of the extension is not useable in windows due to the way the calls are made
-
 A brief tutorial can be found [at](http://blog.thinkst.com/2011/09/chrome-extension-for-gpg-in-gmail.html)
 
 ## Using the extension :
 
 Encrypting a message : 
 The extension is hopefully easy enough to use , open up a gmail
-window(mail.thinkst.com) to begin. To encrypt a new message use
+window to begin. To encrypt a new message use
 the compose button as normal , but you will notice that there is
 a encrypt link next to the Rich Formatting link.
 
