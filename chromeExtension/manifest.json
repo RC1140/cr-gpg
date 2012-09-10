@@ -1,7 +1,7 @@
 {
   "name": "Cr-gpg",
   "manifest_version": 2,
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Chrome-gpg. Quick hack that bridges gmail to your locally installed gpg.",
   "icons":{"128":"icon.png"},
   "offline_enabled" : true,
