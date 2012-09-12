@@ -44,8 +44,15 @@ chrome.extension.onRequest.addListener(
             var privKeySet = plugin0().getPrivateKeyList();
             var keyIDs = Object.keys(privKeySet);
             if(keyIDs.length > 0){
-                console.log(keyIDs[0]);
-                signing_key = keyIDs[0];
+                if(localStorage["signingKeyID"] != ''){
+                    if(keyIDs.indexOf(localStorage["signingKeyID"]) != -1){
+                        signing_key = localStorage["signingKeyID"];
+                    }else{
+                        signing_key = keyIDs[0];
+                    };
+                }else{
+                    signing_key = keyIDs[0];
+                };
             };
             var sign_status = plugin0().gpgSignText([signing_key],request.sign.message, 2);
             sendResponse({message: sign_status,domid:request.sign.domel});

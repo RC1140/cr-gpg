@@ -22,8 +22,10 @@ function save_options() {
             alert('You have ticked self sign but not provided a email address');
             return; 
         }
-    }
+    };
+    localStorage["signingKeyID"] =  $('#signingKeyID').val();
 
+    /*
     var tempPath = document.getElementById("tempPath");
     var testTempPath = tempPath.value.toString();
     if(!testTempPath.match(/\/$/)){
@@ -34,6 +36,7 @@ function save_options() {
         }
     };
     localStorage["tempPath"] = testTempPath;
+    */
     alert('Saved');
 };
 
@@ -46,6 +49,7 @@ function restore_options() {
     if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
         $('#useAutoInclude')[0].checked = true;
     };
+    $('#signingKeyID').val(localStorage["signingKeyID"]);
     $('#personaladdress').val(localStorage["personaladdress"]);
 };
 
@@ -67,6 +71,7 @@ function restore_temp_default() {
 $(document).ready(function(){
     $(function() {
         $( "#tabs" ).tabs();
+        $('#saveButton').click(save_options);
         restore_options();
     });
 });
