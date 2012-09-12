@@ -41,16 +41,29 @@ chrome.extension.onRequest.addListener(
             var privKeySet = plugin0().getPrivateKeyList();
             var keyIDs = Object.keys(privKeySet);
             if(keyIDs.length > 0){
-                if(localStorage["signingKeyID"] != ''){
+                if(localStorage["signingKeyID"] && localStorage["signingKeyID"] != ''){
                     if(keyIDs.indexOf(localStorage["signingKeyID"]) != -1){
                         signing_key = localStorage["signingKeyID"];
                     }else{
-                        signing_key = keyIDs[0];
+                        if(request.sign.currentMail){
+                            for(var sKey in privKeySet){
+                                if(privKeySet[sKey].email == request.sign.currentMail){
+                                    signing_key = sKey;
+                                    break;
+                                };
+                            }; 
+                            if(signing_key == ''){
+                                signing_key = keyIDs[0];
+                            };
+                        }else{
+                            signing_key = keyIDs[0];
+                        };
+
                     };
                 }else{
                     if(request.sign.currentMail){
                         for(var sKey in privKeySet){
-                            if(privKeySet[sKey].email == currentMail){
+                            if(privKeySet[sKey].email == request.sign.currentMail){
                                 signing_key = sKey;
                                 break;
                             };
