@@ -13,9 +13,10 @@ chrome.extension.onRequest.addListener(
             }
             var mailMessage = request.encrypt.message;
             var currentPubKeyList = [];
-            for(var k in  plugin0().getPublicKeyList())
+            var list = plugin0().getPublicKeyList();
+            for(var k in list)
             {
-                currentPubKeyList.push(plugin0().getPublicKeyList()[k].email);
+                currentPubKeyList.push(list[k].email);
             }
             for(var encRec in  mailList)
             {
@@ -40,10 +41,10 @@ chrome.extension.onRequest.addListener(
             //Note this assume we always want to use the first private key for signing.
             //It might be better to give the use a setting on the options page to choose what
             //they want
-            for (var key in plugin0().getPrivateKeyList()){
-                signing_key = key;
-                break;
-            }
+            var list = plugin0().getPublicKeyList();
+            if(list.length > 0){
+                signing_key = list[0];
+            };
             var sign_status = plugin0().gpgSignText([signing_key],request.sign.message, 2);
             sendResponse({message: sign_status,domid:request.sign.domel});
         }else if(request.messageType == 'verify'){    
