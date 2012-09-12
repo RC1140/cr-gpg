@@ -41,9 +41,11 @@ chrome.extension.onRequest.addListener(
             //Note this assume we always want to use the first private key for signing.
             //It might be better to give the use a setting on the options page to choose what
             //they want
-            var list = plugin0().getPublicKeyList();
-            if(list.length > 0){
-                signing_key = list[0];
+            var privKeySet = plugin0().getPrivateKeyList();
+            var keyIDs = Object.keys(privKeySet);
+            if(keyIDs.length > 0){
+                console.log(keyIDs[0]);
+                signing_key = keyIDs[0];
             };
             var sign_status = plugin0().gpgSignText([signing_key],request.sign.message, 2);
             sendResponse({message: sign_status,domid:request.sign.domel});
