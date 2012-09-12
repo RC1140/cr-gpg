@@ -38,9 +38,6 @@ chrome.extension.onRequest.addListener(
             sendResponse({message: import_status});
         }else if(request.messageType == 'sign'){
             var signing_key = '';
-            //Note this assume we always want to use the first private key for signing.
-            //It might be better to give the use a setting on the options page to choose what
-            //they want
             var privKeySet = plugin0().getPrivateKeyList();
             var keyIDs = Object.keys(privKeySet);
             if(keyIDs.length > 0){
@@ -51,7 +48,19 @@ chrome.extension.onRequest.addListener(
                         signing_key = keyIDs[0];
                     };
                 }else{
-                    signing_key = keyIDs[0];
+                    if(request.sign.currentMail){
+                        for(var sKey in privKeySet){
+                            if(privKeySet[sKey].email == currentMail){
+                                signing_key = sKey;
+                                break;
+                            };
+                        }; 
+                        if(signing_key == ''){
+                            signing_key = keyIDs[0];
+                        };
+                    }else{
+                        signing_key = keyIDs[0];
+                    };
                 };
             };
             var sign_status = plugin0().gpgSignText([signing_key],request.sign.message, 2);

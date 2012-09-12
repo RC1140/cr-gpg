@@ -34,9 +34,10 @@ $(document).ready(function(){
             var messageElement = $('#canvas_frame').contents().find($(that)).closest('.fN').find('.Ak');
             var emailMessage = messageElement.val(); 
             jQuery.returnEl = that;
-            chrome.extension.sendRequest({'messageType':'sign',sign: {'message':emailMessage}}, function(response) {
+            var currentMail =  document.getElementsByTagName('title')[0].innerHTML.split(' - ')[1];
+            chrome.extension.sendRequest({'messageType':'sign',sign: {'currentMail':currentMail,'message':emailMessage}}, function(response) {
                 var returnMessage = response.message.data;
-                if(returnMessage.length > 1){
+                if(returnMessage){
                     var messageElement = $('#canvas_frame').contents().find($(jQuery.returnEl)).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
                             alert(returnMessage); 
