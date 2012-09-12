@@ -35,7 +35,7 @@ $(document).ready(function(){
             var emailMessage = messageElement.val(); 
             jQuery.returnEl = that;
             chrome.extension.sendRequest({'messageType':'sign',sign: {'message':emailMessage}}, function(response) {
-                var returnMessage = response.message;
+                var returnMessage = response.message.data;
                 if(returnMessage.length > 1){
                     var messageElement = $('#canvas_frame').contents().find($(jQuery.returnEl)).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
