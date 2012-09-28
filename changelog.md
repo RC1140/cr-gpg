@@ -1,3 +1,6 @@
+### Changed in 0.8.3 :
+- Fixed popup loading issue when self sign was enabled.
+
 ### Changed in 0.8.2 :
 - Fixed a number of security issues reported by both Gynvael Coldwind (http://gynvael.coldwind.pl/) and Krzysztof Kotowicz (http://blog.kotowicz.net/)
 - Added multi language support , thanks to the patch from (@Crepuscule https://github.com/RC1140/cr-gpg/issues/20)
