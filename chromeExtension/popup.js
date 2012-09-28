@@ -48,31 +48,12 @@ $(document).ready(function(){
         };
 
     });
-    $('button.save-options').click(function(){
-        localStorage["useAutoInclude"] = $('#useAutoInclude')[0].checked;
-        if(localStorage["useAutoInclude"] != 'false'){
-            if($('#personaladdress').val() != ''){
-                localStorage["personaladdress"] =  $('#personaladdress').val();
-            }else{
-                $('#options-reponse').html('You have ticked self sign but not provided a email address');   
-                $('#options-reponse').css('color','red');
-                return; 
-            }
-        };
-        chrome.extension.sendRequest({'messageType':'testSettings'},function(response){
-            alert('Saved');
-        });
-    });
+   
+    $("#tabs").tabs();
 
-    if(localStorage["useAutoInclude"] && localStorage["useAutoInclude"] != 'false'){
-        $('#useAutoInclude')[0].checked = true;
+    function getVersion() {
+        return chrome.app.getDetails().version;
     };
 
-    $('#personaladdress').val(localStorage["personaladdress"]);
-    
-
-    $(function() {
-        $( "#tabs" ).tabs();
-    });
+    $('#version').text(getVersion());
 });
-

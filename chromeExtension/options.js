@@ -12,6 +12,10 @@ function(request, sender, sendResponse) {
     }
 });
 
+function getVersion() {
+    return chrome.app.getDetails().version;
+};
+
 // Saves options to localStorage.
 function save_options() {
     localStorage["useAutoInclude"] = $('#useAutoInclude')[0].checked;
@@ -25,18 +29,6 @@ function save_options() {
     };
     localStorage["signingKeyID"] =  $('#signingKeyID').val();
 
-    /*
-    var tempPath = document.getElementById("tempPath");
-    var testTempPath = tempPath.value.toString();
-    if(!testTempPath.match(/\/$/)){
-        if($.client.os == 'Windows'){
-            testTempPath += '\\';
-        }else{
-            testTempPath += '/';
-        }
-    };
-    localStorage["tempPath"] = testTempPath;
-    */
     alert('Saved');
 };
 
@@ -69,9 +61,8 @@ function restore_temp_default() {
 };
 
 $(document).ready(function(){
-    $(function() {
-        $( "#tabs" ).tabs();
-        $('#saveButton').click(save_options);
-        restore_options();
-    });
+    $( "#tabs" ).tabs();
+    $('#saveButton').click(save_options);
+    restore_options();
+    $('#version').text(getVersion());
 });
