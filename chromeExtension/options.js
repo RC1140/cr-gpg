@@ -1,4 +1,13 @@
 chrome.extension.onRequest.addListener(
+
+function getVersion() {
+    if(chrome.app.getDetails()){
+        return chrome.app.getDetails().version;
+    }else{
+        return '' 
+    };
+};
+
 function(request, sender, sendResponse) {
     if(request.messageType == 'alertUser'){
         if(!request.gpg){
@@ -11,10 +20,6 @@ function(request, sender, sendResponse) {
         }
     }
 });
-
-function getVersion() {
-    return chrome.app.getDetails().version;
-};
 
 // Saves options to localStorage.
 function save_options() {

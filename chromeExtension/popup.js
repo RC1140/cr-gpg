@@ -1,4 +1,12 @@
 $(document).ready(function(){
+    function getVersion() {
+        if(chrome.app.getDetails()){
+            return chrome.app.getDetails().version;
+        }else{
+            return '' 
+        };
+    };
+
     function plugin0()
     {
         return document.getElementById('plugin0');
@@ -51,9 +59,6 @@ $(document).ready(function(){
    
     $("#tabs").tabs();
 
-    function getVersion() {
-        return chrome.app.getDetails().version;
-    };
-
+    
     $('#version').text(getVersion());
 });
