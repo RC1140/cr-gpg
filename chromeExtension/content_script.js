@@ -1,7 +1,7 @@
 $(document).ready(function(){
         //Listen for decrypt click
         var decryptMessageHandler = function(that){
-            var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('decid')).closest('.gs').find('.ii.gt');
+            var messageElement = $('body div.nH').contents().find('#'+$(that).attr('decid')).closest('.gs').find('.ii.gt');
             var emailMessage = messageElement.text(); 
             //If this currently exists in the message it means we have a embeded 
             //sig , the - -- indicates this.
@@ -13,7 +13,7 @@ $(document).ready(function(){
             chrome.extension.sendRequest({'messageType':'decrypt',decrypt: {'message':emailMessage,'domel':$(that).attr('decid'),'multidec':multiDec}}, function(response) {
                 if(response.message.indexOf('decryption failed') == -1){
                     if(response.message.indexOf('no valid OpenPGP data found') == -1){
-                        var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
+                        var messageElement = $('body div.nH').contents().find('#'+response.domid.toString()).closest('.gs').find('.ii.gt');
                         if($.trim(response.message).length == 0){
                             alert('Invalid Passphrase'); 
                         }else{
@@ -31,14 +31,14 @@ $(document).ready(function(){
         
         var clearSignHandler = function(that){
             event.preventDefault();
-            var messageElement = $('#canvas_frame').contents().find($(that)).closest('.fN').find('.Ak');
+            var messageElement = $('body div.nH').contents().find($(that)).closest('.fN').find('.Ak');
             var emailMessage = messageElement.val(); 
             jQuery.returnEl = that;
             var currentMail =  document.getElementsByTagName('title')[0].innerHTML.split(' - ')[1];
             chrome.extension.sendRequest({'messageType':'sign',sign: {'currentMail':currentMail,'message':emailMessage}}, function(response) {
                 var returnMessage = response.message.data;
                 if(returnMessage){
-                    var messageElement = $('#canvas_frame').contents().find($(jQuery.returnEl)).closest('.fN').find('.Ak');
+                    var messageElement = $('body div.nH').contents().find($(jQuery.returnEl)).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
                             alert(returnMessage); 
                             return;
@@ -79,7 +79,7 @@ $(document).ready(function(){
                                          '</textarea><button customFunction="simpleEncrypt">Encrypt Message</button></div>'].join(' '));
             $(composerDialog).attr('id',$(that).attr('id'));
             var MessageHandler = function(that){
-                var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('id')).closest('.fN').find('.Ak');
+                var messageElement = $('body div.nH').contents().find('#'+$(that).attr('id')).closest('.fN').find('.Ak');
                 var returnMessage = $('.composerMessage').val();
                 if(returnMessage.indexOf('gpg:') != -1){
                     alert(returnMessage); 
@@ -107,7 +107,7 @@ $(document).ready(function(){
 
         };
         var encryptionHandler= function(that){
-            var messageElement = $('#canvas_frame').contents().find('#'+$(that).attr('id')).closest('.fN').find('.Ak');
+            var messageElement = $('body div.nH').contents().find('#'+$(that).attr('id')).closest('.fN').find('.Ak');
             var inlineReply = $(that).closest('.gs').find('textarea.dK.nr');
             if(inlineReply.length == 0){
                 inlineReply = $(that).closest('.fN').find('textarea.dK.nr');
@@ -139,7 +139,7 @@ $(document).ready(function(){
             chrome.extension.sendRequest({'messageType':'encrypt',encrypt: {'message':emailMessage,'domel':$(that).attr('id'),'maillist':encryptionList}}, function(response) {
                 var returnMessage = response.message;
                 if(returnMessage.length > 1){
-                    var messageElement = $('#canvas_frame').contents().find('#'+response.domid.toString()).closest('.fN').find('.Ak');
+                    var messageElement = $('body div.nH').contents().find('#'+response.domid.toString()).closest('.fN').find('.Ak');
                     if(returnMessage.indexOf('gpg:') != -1){
                         alert(returnMessage); 
                         return;
@@ -159,7 +159,7 @@ $(document).ready(function(){
 
         //Load up the decrypt and verify buttons on currently visible emails for the new theme
         var loadButtons = function(items){
-            $(items).each(function(loopindex){
+            $(items).each(function(loopindex,loopitem){
                 if(!$(this).prev().hasClass('customdec')){
                     var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                     var decryptButton = [ '<a decid="',
@@ -308,7 +308,7 @@ $(document).ready(function(){
         var loadOldThemesButtons = function(searchLocation){
             $('.Bs.nH.iY .cKWzSc.mD[role="button"]',searchLocation).each(function(index){
                 if($(this).find('span:contains(Reply)')){
-                    if($('#canvas_frame').contents().find('.nH.oy8Mbf span:contains(Switch to the new look)').length !== 0){
+                    if($('body div.nH').contents().find('.nH.oy8Mbf span:contains(Switch to the new look)').length !== 0){
                         if($(this).parent().prev().length == 0){
                             var id = Math.floor(Math.random($(this).parent().parent().length)*16777215).toString(16);
                             $(this).parent().parent().prepend(['<td><div class="mD"><span class="mG" decid="'+id+'" customFunction="decrypt">Decrypt Message </span></div></td>',
@@ -351,22 +351,23 @@ $(document).ready(function(){
         });
 
         //Load up buttons on keypress
-        $('#canvas_frame').contents().keypress(function(e){
-            //Tiny timeout is required so that the html can be rendered
-            setTimeout(function(){
-                loadButtons($('#canvas_frame').contents().find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
-                var highLevelCheck = $('#canvas_frame').contents().find('.nH');
-                loadGenericFunctionHandlers(highLevelCheck);
-                loadOldThemesButtons(highLevelCheck);
-                loadComposeButtons(highLevelCheck);
-            },100);
-        });
-
         //Load up buttons on mouseover
-        $('#canvas_frame').contents().on('mouseover','.nH',function(){
-            loadOldThemesButtons(this);
-            loadComposeButtons(this);
-            loadButtons($(this).find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
-            loadGenericFunctionHandlers(this);
-        });
+        //Tiny timeout is required so that the html can be rendered
+        setTimeout(function(){
+            $('body div.nH').contents().on('mouseover','.nH[role="main"]',function(){
+                //loadOldThemesButtons(this);
+                loadComposeButtons(this);
+                loadButtons($(this).find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
+                loadGenericFunctionHandlers(this);
+            });
+
+            /*$('body div.nH').contents().keypress(function(e){
+                loadButtons($('body div.nH').contents().find('tr.acZ td.gH.acX div.T-I-Js-IF')); 
+                var highLevelCheck = $('body div.nH').contents().find('.nH');
+                loadGenericFunctionHandlers(highLevelCheck);
+                //loadOldThemesButtons(highLevelCheck);
+                loadComposeButtons(highLevelCheck);
+            });
+            */
+        },1000);
 });
