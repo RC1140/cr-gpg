@@ -1,5 +1,3 @@
-chrome.extension.onRequest.addListener(
-
 function getVersion() {
     if(chrome.app.getDetails()){
         return chrome.app.getDetails().version;
@@ -7,7 +5,7 @@ function getVersion() {
         return '' 
     };
 };
-
+chrome.extension.onRequest.addListener(
 function(request, sender, sendResponse) {
     if(request.messageType == 'alertUser'){
         if(!request.gpg){

@@ -1,11 +1,12 @@
 $(document).ready(function(){
+
     function getVersion() {
         if(chrome.app.getDetails()){
             return chrome.app.getDetails().version;
         }else{
-            return '' 
+            return '';
         };
-    };
+    }
 
     function plugin0()
     {
