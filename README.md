@@ -5,6 +5,12 @@ Download it from [here](http://thinkst.com/tools/cr-gpg/)
 
 A brief tutorial can be found [at](http://blog.thinkst.com/2011/09/chrome-extension-for-gpg-in-gmail.html)
 
+## Known Issues: 
+
+We have had users report issues with certain versions of mountain lion.
+If you encounter any issues please log an issue with as many details as
+possible to aid us in fixing this.
+
 ## Using the extension :
 
 Encrypting a message : 
